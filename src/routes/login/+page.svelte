@@ -1,8 +1,17 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { enhance } from '$app/forms';
   import type { ActionData } from './$types';
   let { form }: { form: ActionData } = $props();
   let showPw = $state(false);
+  // Estado propio (bind:value) en vez de value={form?.username ?? ''}: un binding de
+  // una sola vía se resincroniza también en renders no relacionados (p.ej. el toggle
+  // del ojito), borrando lo que el usuario esté escribiendo. El effect solo restaura
+  // el username tras un intento fallido de login.
+  let username = $state(untrack(() => form?.username ?? ''));
+  $effect(() => {
+    if (form?.username != null) username = form.username;
+  });
 </script>
 
 <div class="login-wrap">
@@ -17,7 +26,7 @@
     <form method="POST" use:enhance>
       <div class="field">
         <label for="username">Usuario</label>
-        <input id="username" name="username" type="text" autocomplete="username" value={form?.username ?? ''} />
+        <input id="username" name="username" type="text" autocomplete="username" bind:value={username} />
       </div>
       <div class="field">
         <label for="password">Contraseña</label>
