@@ -1,0 +1,1 @@
+ALTER TABLE `negocio_members` ADD `rol` text DEFAULT 'member' NOT NULL;

@@ -1,0 +1,47 @@
+name: espejo pull (prod → artifact) 📥
+
+# Herramienta manual: hace un snapshot de SOLO LECTURA de la BD de PRODUCCIÓN
+# (VACUUM INTO → archivo consistente, aunque la app esté escribiendo) + un tar de
+# la carpeta uploads/ (las fotos de productos), y los sube como artifact. Luego,
+# en local: `npm run db:espejo-pull` los baja y los aplica sobre tu local.
+# NO escribe nada en prod. Reusa los mismos secrets del deploy.
+on:
+  workflow_dispatch:
+
+jobs:
+  dump:
+    name: snapshot de prod (solo lectura)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: install ssh key
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+
+      # El snapshot viaja como base64 (evita comillas anidadas). En el droplet:
+      # cargar nvm, entrar al repo, leer DATABASE_URL del .env y hacer VACUUM INTO
+      # /tmp/espejo.db; luego tar de uploads/ (o un tar vacío si no existe).
+      - name: snapshot BD + uploads en prod
+        env:
+          SNAP_B64: Y29uc3QgZnMgPSByZXF1aXJlKCdmcycpOwpjb25zdCBtID0gZnMucmVhZEZpbGVTeW5jKCcuZW52JywgJ3V0ZjgnKS5tYXRjaCgvXkRBVEFCQVNFX1VSTD0oLiopJC9tKTsKY29uc3QgdXJsID0gKG0gPyBtWzFdLnRyaW0oKSA6ICcuL2xvY2FsLmRiJykucmVwbGFjZSgvXmZpbGU6LywgJycpOwp0cnkgeyBmcy51bmxpbmtTeW5jKCcvdG1wL2VzcGVqby5kYicpOyB9IGNhdGNoIChlKSB7fQpjb25zdCBkYiA9IHJlcXVpcmUoJ2JldHRlci1zcWxpdGUzJykodXJsKTsKZGIuZXhlYygiVkFDVVVNIElOVE8gJy90bXAvZXNwZWpvLmRiJyIpOwpkYi5jbG9zZSgpOwpjb25zb2xlLmVycm9yKCdzbmFwc2hvdCBvayBkZXNkZSAnICsgdXJsKTsK
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && nvm use node >/dev/null && cd ~/code/pulso-servicio && echo $SNAP_B64 | base64 -d | node && { [ -d uploads ] && tar -czf /tmp/espejo-uploads.tgz uploads || tar -czf /tmp/espejo-uploads.tgz -T /dev/null; }"
+          scp ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/espejo.db ./espejo.db
+          scp ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/espejo-uploads.tgz ./espejo-uploads.tgz
+          echo "tamaños:"; ls -la espejo.db espejo-uploads.tgz
+
+      - name: cleanup ssh
+        if: always()
+        run: rm -rf ~/.ssh
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: espejo-prod
+          path: |
+            espejo.db
+            espejo-uploads.tgz
+          retention-days: 1
