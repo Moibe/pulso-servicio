@@ -26,7 +26,19 @@
     <form method="POST" use:enhance>
       <div class="field">
         <label for="username">Usuario</label>
-        <input id="username" name="username" type="text" autocomplete="username" bind:value={username} />
+        <!-- autocomplete="off" (no "username"): evita que Chrome ofrezca el autofill de
+             direcciones/correos usados antes. autocapitalize/spellcheck off porque un
+             usuario no se capitaliza ni se corrige. -->
+        <input
+          id="username"
+          name="username"
+          type="text"
+          autocomplete="off"
+          autocapitalize="none"
+          autocorrect="off"
+          spellcheck="false"
+          bind:value={username}
+        />
       </div>
       <div class="field">
         <label for="password">Contraseña</label>
