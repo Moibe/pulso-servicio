@@ -1,6 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import { enhance } from '$app/forms';
+  import BrandIcon from '$lib/BrandIcon.svelte';
   import type { ActionData } from './$types';
   let { form }: { form: ActionData } = $props();
   let showPw = $state(false);
@@ -17,7 +18,7 @@
 <div class="login-wrap">
   <div class="card">
     <div class="brand">
-      <span class="brand-ico" aria-hidden="true"></span>
+      <BrandIcon size={26} />
       <span class="brand-title">Pulso Servicio</span>
     </div>
 
@@ -106,13 +107,7 @@
     align-items: center;
     gap: 0.6rem;
     margin-bottom: 1.5rem;
-  }
-  .brand-ico {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    background: rgba(30, 41, 59, 0.85);
-    flex-shrink: 0;
+    color: #1e293b; /* el caduceo (currentColor) hereda este slate */
   }
   .brand-title {
     font-size: 1.15rem;

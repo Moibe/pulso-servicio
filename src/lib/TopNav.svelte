@@ -1,6 +1,7 @@
 <script lang="ts">
   // Barra superior "de vidrio" con tilt 3D al pasar el mouse. Marca + área de usuario.
   import Avatar from '$lib/Avatar.svelte';
+  import BrandIcon from '$lib/BrandIcon.svelte';
 
   let { user }: { user: { username: string } } = $props();
 
@@ -29,7 +30,7 @@
   onmouseleave={handleLeave}
 >
   <a href="/" class="brand" aria-label="Inicio">
-    <span class="brand-ico" aria-hidden="true"></span>
+    <BrandIcon size={24} />
     <span class="brand-title">Pulso Servicio</span>
   </a>
 
@@ -81,14 +82,6 @@
   }
   .brand:hover {
     background: rgba(0, 0, 0, 0.05);
-  }
-  .brand-ico {
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    flex-shrink: 0;
-    background: rgba(30, 41, 59, 0.85);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   .brand-title {
     font-size: 1.2rem;
