@@ -2,6 +2,9 @@
   import { untrack } from 'svelte';
   import { enhance } from '$app/forms';
   import BrandIcon from '$lib/BrandIcon.svelte';
+  // TEMPORAL: los 3 candidatos de ícono lado a lado para elegir uno.
+  import BrandIconAsclepio from '$lib/BrandIconAsclepio.svelte';
+  import BrandIconPulso from '$lib/BrandIconPulso.svelte';
   import type { ActionData } from './$types';
   let { form }: { form: ActionData } = $props();
   let showPw = $state(false);
@@ -20,6 +23,14 @@
     <div class="brand">
       <BrandIcon size={26} />
       <span class="brand-title">Pulso Servicio</span>
+    </div>
+
+    <!-- TEMPORAL: comparador de íconos. Al elegir uno, borrar este bloque
+         y dejar solo el componente ganador arriba en .brand. -->
+    <div class="icon-picker">
+      <div class="opt"><BrandIcon size={30} /><span>A · Caduceo</span></div>
+      <div class="opt"><BrandIconAsclepio size={30} /><span>B · Asclepio</span></div>
+      <div class="opt"><BrandIconPulso size={30} /><span>C · Pulso</span></div>
     </div>
 
     <h1>Iniciar sesión</h1>
@@ -108,6 +119,29 @@
     gap: 0.6rem;
     margin-bottom: 1.5rem;
     color: #1e293b; /* el caduceo (currentColor) hereda este slate */
+  }
+  /* TEMPORAL: comparador de íconos (borrar junto con el bloque .icon-picker). */
+  .icon-picker {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin: -0.6rem 0 1.4rem;
+    padding: 0.75rem 0.5rem;
+    border: 1px dashed rgba(30, 41, 59, 0.25);
+    border-radius: 10px;
+    color: #1e293b;
+  }
+  .icon-picker .opt {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .icon-picker .opt span {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(30, 41, 59, 0.7);
   }
   .brand-title {
     font-size: 1.15rem;
