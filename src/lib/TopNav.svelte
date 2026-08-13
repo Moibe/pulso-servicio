@@ -1,9 +1,7 @@
 <script lang="ts">
   // Barra superior "de vidrio" con tilt 3D al pasar el mouse. Marca + área de usuario.
   import Avatar from '$lib/Avatar.svelte';
-  // TEMPORAL: los 2 candidatos de ícono lado a lado para elegir uno.
   import BrandIconAsclepio from '$lib/BrandIconAsclepio.svelte';
-  import BrandIconPulso from '$lib/BrandIconPulso.svelte';
 
   let { user }: { user: { username: string } } = $props();
 
@@ -32,11 +30,7 @@
   onmouseleave={handleLeave}
 >
   <a href="/" class="brand" aria-label="Inicio">
-    <!-- TEMPORAL: B=asclepio · C=pulso. Al elegir, dejar solo uno. -->
-    <span class="icon-tryout">
-      <span title="B · Bastón de Asclepio"><BrandIconAsclepio size={24} /></span>
-      <span title="C · Corazón + latido"><BrandIconPulso size={24} /></span>
-    </span>
+    <BrandIconAsclepio size={24} />
     <span class="brand-title">Pulso Servicio</span>
   </a>
 
@@ -88,12 +82,6 @@
   }
   .brand:hover {
     background: rgba(0, 0, 0, 0.05);
-  }
-  /* TEMPORAL: fila con los 3 candidatos de ícono. */
-  .icon-tryout {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
   }
   .brand-title {
     font-size: 1.2rem;

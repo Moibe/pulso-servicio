@@ -1,5 +1,15 @@
 <script lang="ts">
-  // Opción C: corazón con línea de latido — juego literal con el nombre "Pulso".
+  // ALTERNATIVA DE MARCA — hoy NO se usa (a propósito, no es código muerto).
+  //
+  // Corazón con línea de latido: juego literal con el nombre "Pulso". Se comparó
+  // contra el bastón de Asclepio ($lib/BrandIconAsclepio.svelte) y se eligió el
+  // Asclepio por ser app de uso interno: su doble lectura (serpiente + onda de
+  // electro) envejece mejor. Este queda en reserva por si algún día conviene un
+  // ícono más obvio al primer vistazo.
+  //
+  // Para volver a él: cambiar el import y el uso en $lib/TopNav.svelte y en
+  // src/routes/login/+page.svelte (es intercambiable, misma prop `size`).
+  //
   // Trazo tipo lucide, hereda el color con currentColor.
   let { size = 24 }: { size?: number } = $props();
 </script>
