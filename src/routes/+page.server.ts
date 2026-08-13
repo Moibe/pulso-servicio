@@ -1,58 +1,58 @@
 import { fail } from '@sveltejs/kit';
 import { eq, inArray, desc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { negocios, negocioMembers } from '$lib/server/db/schema';
-import { memberNegocioIds, ownerNegocioIds, requireManageNegocio } from '$lib/server/access';
+import { farmacias, farmaciaMembers } from '$lib/server/db/schema';
+import { memberFarmaciaIds, ownerFarmaciaIds, requireManageFarmacia } from '$lib/server/access';
 import type { Actions, PageServerLoad } from './$types';
 
-// Home: negocios que el usuario en sesión puede ver (admins: todos; usuarios
-// normales: solo los que tengan asignados como miembro), con si puede administrarlo.
+// Home: farmacias que el usuario en sesión puede ver (admins: todas; usuarios
+// normales: solo las que tengan asignadas como miembro), con si puede administrarla.
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user!;
 	let scope;
 	if (!user.isAdmin) {
-		const ids = memberNegocioIds(user.id);
-		if (ids.length === 0) return { negocios: [] };
-		scope = inArray(negocios.id, ids);
+		const ids = memberFarmaciaIds(user.id);
+		if (ids.length === 0) return { farmacias: [] };
+		scope = inArray(farmacias.id, ids);
 	}
 	const lista = db
 		.select()
-		.from(negocios)
+		.from(farmacias)
 		.where(scope)
-		.orderBy(desc(negocios.creadoEn))
+		.orderBy(desc(farmacias.creadoEn))
 		.all();
 
-	const ownedIds = user.isAdmin ? null : new Set(ownerNegocioIds(user.id));
+	const ownedIds = user.isAdmin ? null : new Set(ownerFarmaciaIds(user.id));
 	return {
-		negocios: lista.map((n) => ({ ...n, canManage: user.isAdmin || ownedIds!.has(n.id) }))
+		farmacias: lista.map((n) => ({ ...n, canManage: user.isAdmin || ownedIds!.has(n.id) }))
 	};
 };
 
 export const actions: Actions = {
-	// Crear negocio: cualquier usuario con sesión. Quien lo crea nace "owner" de
-	// ESE negocio (lo administra por completo aunque no sea admin global).
+	// Crear farmacia: cualquier usuario con sesión. Quien la crea nace "owner" de
+	// ESA farmacia (la administra por completo aunque no sea admin global).
 	crear: async ({ request, locals }) => {
 		const user = locals.user!;
 		const data = await request.formData();
 		const nombre = String(data.get('nombre') ?? '').trim();
 		if (!nombre) {
-			return fail(400, { error: 'El nombre del negocio no puede estar vacío.' });
+			return fail(400, { error: 'El nombre de la farmacia no puede estar vacío.' });
 		}
-		const negocio = db.insert(negocios).values({ nombre }).returning().get();
-		db.insert(negocioMembers).values({ negocioId: negocio.id, usuarioId: user.id, rol: 'owner' }).run();
+		const farmacia = db.insert(farmacias).values({ nombre }).returning().get();
+		db.insert(farmaciaMembers).values({ farmaciaId: farmacia.id, usuarioId: user.id, rol: 'owner' }).run();
 		return { success: true };
 	},
 
-	// Renombrar: admin global, u owner de ese negocio en particular.
-	renombrarNegocio: async ({ request, locals }) => {
+	// Renombrar: admin global, u owner de esa farmacia en particular.
+	renombrarFarmacia: async ({ request, locals }) => {
 		const data = await request.formData();
-		const negocioId = Number(data.get('negocioId'));
+		const farmaciaId = Number(data.get('farmaciaId'));
 		const nombre = String(data.get('nombre') ?? '').trim();
-		if (!Number.isInteger(negocioId)) return fail(400, { error: 'Negocio inválido' });
-		if (!nombre) return fail(400, { error: 'El nombre del negocio no puede estar vacío.' });
-		requireManageNegocio(locals.user, negocioId);
+		if (!Number.isInteger(farmaciaId)) return fail(400, { error: 'Farmacia inválida' });
+		if (!nombre) return fail(400, { error: 'El nombre de la farmacia no puede estar vacío.' });
+		requireManageFarmacia(locals.user, farmaciaId);
 
-		db.update(negocios).set({ nombre }).where(eq(negocios.id, negocioId)).run();
+		db.update(farmacias).set({ nombre }).where(eq(farmacias.id, farmaciaId)).run();
 		return { success: true };
 	}
 };

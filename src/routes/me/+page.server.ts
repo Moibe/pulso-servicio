@@ -2,25 +2,25 @@ import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 import { asc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { usuarios, negocios, negocioMembers } from '$lib/server/db/schema';
+import { usuarios, farmacias, farmaciaMembers } from '$lib/server/db/schema';
 import { verifyPassword, hashPassword } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const me = locals.user!;
 	const row = db.select({ creadoEn: usuarios.creadoEn }).from(usuarios).where(eq(usuarios.id, me.id)).get();
 
-	// Negocios en los que está: los admins están efectivamente en todos; los demás
+	// Farmacias en los que está: los admins están efectivamente en todos; los demás
 	// solo los que tengan asignados.
-	let negocioNombres: string[];
+	let farmaciaNombres: string[];
 	if (me.isAdmin) {
-		negocioNombres = db.select({ nombre: negocios.nombre }).from(negocios).orderBy(asc(negocios.nombre)).all().map((r) => r.nombre);
+		farmaciaNombres = db.select({ nombre: farmacias.nombre }).from(farmacias).orderBy(asc(farmacias.nombre)).all().map((r) => r.nombre);
 	} else {
-		negocioNombres = db
-			.select({ nombre: negocios.nombre })
-			.from(negocioMembers)
-			.innerJoin(negocios, eq(negocioMembers.negocioId, negocios.id))
-			.where(eq(negocioMembers.usuarioId, me.id))
-			.orderBy(asc(negocios.nombre))
+		farmaciaNombres = db
+			.select({ nombre: farmacias.nombre })
+			.from(farmaciaMembers)
+			.innerJoin(farmacias, eq(farmaciaMembers.farmaciaId, farmacias.id))
+			.where(eq(farmaciaMembers.usuarioId, me.id))
+			.orderBy(asc(farmacias.nombre))
 			.all()
 			.map((r) => r.nombre);
 	}
@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		username: me.username,
 		isAdmin: me.isAdmin,
 		creadoEn: row?.creadoEn ?? null,
-		negocioNombres
+		farmaciaNombres
 	};
 };
 

@@ -3,28 +3,28 @@
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
-  const negocio = $derived(data.negocio);
+  const farmacia = $derived(data.farmacia);
 </script>
 
 <div class="wrap">
-  <a class="back" href="/negocios/{negocio.id}">← Volver</a>
-  <h1>Ajustes de negocio</h1>
+  <a class="back" href="/farmacias/{farmacia.id}">← Volver</a>
+  <h1>Ajustes de farmacia</h1>
 
   <form method="POST" action="?/rename" use:enhance>
     <div class="field">
       <label for="nombre">Nombre</label>
-      <input id="nombre" name="nombre" type="text" value={negocio.nombre} />
+      <input id="nombre" name="nombre" type="text" value={farmacia.nombre} />
       {#if form?.nameError}<span class="err" role="alert">{form.nameError}</span>{/if}
     </div>
     <div class="actions">
-      <a class="btn ghost" href="/negocios/{negocio.id}">Cancelar</a>
+      <a class="btn ghost" href="/farmacias/{farmacia.id}">Cancelar</a>
       <button class="btn primary" type="submit">Guardar</button>
     </div>
   </form>
 
   <div class="members">
     <h2>Miembros</h2>
-    <p class="hint">Quiénes (no-admins) pueden ver este negocio. Los administradores lo ven siempre.</p>
+    <p class="hint">Quiénes (no-admins) pueden ver esta farmacia. Los administradores la ven siempre.</p>
 
     {#if data.members.length === 0}
       <p class="empty-note">Sin miembros asignados todavía.</p>
@@ -66,11 +66,11 @@
         class="btn danger"
         type="submit"
         onclick={(e) => {
-          if (!confirm(`¿Borrar "${negocio.nombre}"? Se van también sus menús y productos. Es permanente.`))
+          if (!confirm(`¿Borrar "${farmacia.nombre}"? Se van también sus menús y productos. Es permanente.`))
             e.preventDefault();
         }}
       >
-        Borrar negocio
+        Borrar farmacia
       </button>
     </form>
     <p class="dz-hint">Permanente: se lleva en cascada todos sus menús y productos.</p>

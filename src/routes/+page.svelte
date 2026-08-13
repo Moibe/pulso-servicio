@@ -28,7 +28,7 @@
   const fmtFecha = (d: Date | string | number) =>
     new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
 
-  // Edición inline del nombre del negocio.
+  // Edición inline del nombre de la farmacia.
   let editingId = $state<number | null>(null);
   let editValue = $state('');
   function startEdit(p: { id: number; nombre: string }) {
@@ -41,7 +41,7 @@
   }
 
   // Vista lista / mosaico, persistida en localStorage.
-  const VIEW_STORAGE_KEY = 'menu:negocios-view';
+  const VIEW_STORAGE_KEY = 'menu:farmacias-view';
   let viewMode = $state<'list' | 'mosaic'>('mosaic');
   onMount(() => {
     try {
@@ -70,7 +70,7 @@
 {#snippet editForm(p: { id: number })}
   <form
     method="POST"
-    action="?/renombrarNegocio"
+    action="?/renombrarFarmacia"
     class="edit-form"
     use:enhance={() => {
       return async ({ result, update }) => {
@@ -79,7 +79,7 @@
       };
     }}
   >
-    <input type="hidden" name="negocioId" value={p.id} />
+    <input type="hidden" name="farmaciaId" value={p.id} />
     <input
       use:autofocusEdit
       class="edit-input"
@@ -112,19 +112,19 @@
 {/snippet}
 
 {#snippet settingsLink(p: { id: number })}
-  <a class="icon-btn settings" href={`/negocios/${p.id}/settings`} aria-label="Ajustes y miembros" title="Ajustes y miembros">
+  <a class="icon-btn settings" href={`/farmacias/${p.id}/settings`} aria-label="Ajustes y miembros" title="Ajustes y miembros">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
   </a>
 {/snippet}
 
-<section class="negocios">
+<section class="farmacias">
   <header class="head">
-    <h1>Negocios</h1>
-    <button type="button" class="btn-nuevo" onclick={abrir}>+ Negocio Nuevo</button>
+    <h1>Farmacias</h1>
+    <button type="button" class="btn-nuevo" onclick={abrir}>+ Farmacia Nueva</button>
   </header>
 
-  {#if data.negocios.length === 0}
-    <p class="vacio">Aún no tienes negocios. Crea el primero con “Negocio Nuevo”.</p>
+  {#if data.farmacias.length === 0}
+    <p class="vacio">Aún no tienes farmacias. Crea la primera con “Farmacia Nueva”.</p>
   {:else}
     <div class="toolbar">
       <div class="view-toggle" role="radiogroup" aria-label="Vista">
@@ -161,12 +161,12 @@
 
     {#if viewMode === 'mosaic'}
       <ul class="mosaic">
-        {#each data.negocios as p (p.id)}
+        {#each data.farmacias as p (p.id)}
           <li class="tile" class:editing={editingId === p.id}>
             {#if editingId === p.id}
               {@render editForm(p)}
             {:else}
-              <a class="tile-nombre-link" href={`/negocios/${p.id}`}>
+              <a class="tile-nombre-link" href={`/farmacias/${p.id}`}>
                 <span class="tile-nombre">{p.nombre}</span>
               </a>
               {#if p.creadoEn}<span class="tile-fecha">{fmtFecha(p.creadoEn)}</span>{/if}
@@ -180,12 +180,12 @@
       </ul>
     {:else}
       <ul class="lista">
-        {#each data.negocios as p (p.id)}
+        {#each data.farmacias as p (p.id)}
           <li class="item" class:editing={editingId === p.id}>
             {#if editingId === p.id}
               {@render editForm(p)}
             {:else}
-              <a class="item-link" href={`/negocios/${p.id}`}>
+              <a class="item-link" href={`/farmacias/${p.id}`}>
                 <span class="item-nombre">{p.nombre}</span>
               </a>
               {#if p.creadoEn}<span class="item-fecha">{fmtFecha(p.creadoEn)}</span>{/if}
@@ -204,8 +204,8 @@
 {#if showModal}
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <div class="overlay" onclick={cerrar}>
-    <div class="modal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Nuevo negocio" onclick={(e) => e.stopPropagation()}>
-      <h2>Nuevo negocio</h2>
+    <div class="modal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Nueva farmacia" onclick={(e) => e.stopPropagation()}>
+      <h2>Nueva farmacia</h2>
       <form
         method="POST"
         action="?/crear"
@@ -220,7 +220,7 @@
           use:autofocus
           type="text"
           name="nombre"
-          placeholder="Nombre del negocio"
+          placeholder="Nombre de la farmacia"
           bind:value={nombre}
           autocomplete="off"
         />
@@ -235,7 +235,7 @@
 {/if}
 
 <style>
-  .negocios {
+  .farmacias {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;

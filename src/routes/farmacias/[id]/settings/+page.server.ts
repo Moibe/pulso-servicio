@@ -1,24 +1,24 @@
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { negocios, usuarios, negocioMembers } from '$lib/server/db/schema';
+import { farmacias, usuarios, farmaciaMembers } from '$lib/server/db/schema';
 import { and, asc, eq } from 'drizzle-orm';
-import { requireManageNegocio } from '$lib/server/access';
+import { requireManageFarmacia } from '$lib/server/access';
 
-// Ajustes de negocio — admin global, u owner de ESE negocio. Renombrar, membresía
-// (quién más puede verlo) y borrar.
+// Ajustes de farmacia — admin global, u owner de ESA farmacia. Renombrar, membresía
+// (quién más puede verla) y borrar.
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const id = Number(params.id);
-	if (!Number.isInteger(id) || id <= 0) throw error(404, 'Negocio no encontrado');
-	requireManageNegocio(locals.user, id);
+	if (!Number.isInteger(id) || id <= 0) throw error(404, 'Farmacia no encontrada');
+	requireManageFarmacia(locals.user, id);
 
-	const negocio = db.select().from(negocios).where(eq(negocios.id, id)).get();
-	if (!negocio) throw error(404, 'Negocio no encontrado');
+	const farmacia = db.select().from(farmacias).where(eq(farmacias.id, id)).get();
+	if (!farmacia) throw error(404, 'Farmacia no encontrada');
 
 	const memberRows = db
-		.select({ usuarioId: negocioMembers.usuarioId, rol: negocioMembers.rol })
-		.from(negocioMembers)
-		.where(eq(negocioMembers.negocioId, id))
+		.select({ usuarioId: farmaciaMembers.usuarioId, rol: farmaciaMembers.rol })
+		.from(farmaciaMembers)
+		.where(eq(farmaciaMembers.farmaciaId, id))
 		.all();
 	const memberRoles = new Map(memberRows.map((r) => [r.usuarioId, r.rol]));
 
@@ -34,51 +34,51 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		.map((u) => ({ ...u, rol: memberRoles.get(u.id) }));
 	const candidates = allUsers.filter((u) => !u.isAdmin && !memberRoles.has(u.id));
 
-	return { negocio, members, candidates };
+	return { farmacia, members, candidates };
 };
 
-function negocioId(params: { id: string }): number {
+function farmaciaId(params: { id: string }): number {
 	const id = Number(params.id);
-	if (!Number.isInteger(id)) throw error(404, 'Negocio no encontrado');
+	if (!Number.isInteger(id)) throw error(404, 'Farmacia no encontrada');
 	return id;
 }
 
 export const actions: Actions = {
 	rename: async ({ request, params, locals }) => {
-		const id = negocioId(params);
-		requireManageNegocio(locals.user, id);
+		const id = farmaciaId(params);
+		requireManageFarmacia(locals.user, id);
 		const fd = await request.formData();
 		const nombre = String(fd.get('nombre') ?? '').trim();
 		if (!nombre) return fail(400, { nameError: 'El nombre es obligatorio.' });
-		db.update(negocios).set({ nombre }).where(eq(negocios.id, id)).run();
+		db.update(farmacias).set({ nombre }).where(eq(farmacias.id, id)).run();
 		return { renamed: true };
 	},
 
 	// Permanente: se lleva en cascada sus menús y productos.
 	delete: async ({ params, locals }) => {
-		const id = negocioId(params);
-		requireManageNegocio(locals.user, id);
-		db.delete(negocios).where(eq(negocios.id, id)).run();
+		const id = farmaciaId(params);
+		requireManageFarmacia(locals.user, id);
+		db.delete(farmacias).where(eq(farmacias.id, id)).run();
 		throw redirect(303, '/');
 	},
 
 	addMember: async ({ request, params, locals }) => {
-		const id = negocioId(params);
-		requireManageNegocio(locals.user, id);
+		const id = farmaciaId(params);
+		requireManageFarmacia(locals.user, id);
 		const usuarioId = Number((await request.formData()).get('usuarioId'));
 		if (!Number.isInteger(usuarioId)) return fail(400, { memberError: 'Usuario inválido.' });
-		db.insert(negocioMembers).values({ negocioId: id, usuarioId }).onConflictDoNothing().run();
+		db.insert(farmaciaMembers).values({ farmaciaId: id, usuarioId }).onConflictDoNothing().run();
 		return { memberAdded: true };
 	},
 
 	removeMember: async ({ request, params, locals }) => {
-		const id = negocioId(params);
-		requireManageNegocio(locals.user, id);
+		const id = farmaciaId(params);
+		requireManageFarmacia(locals.user, id);
 		const usuarioId = Number((await request.formData()).get('usuarioId'));
 		if (!Number.isInteger(usuarioId)) return fail(400, { memberError: 'Usuario inválido.' });
 		db
-			.delete(negocioMembers)
-			.where(and(eq(negocioMembers.negocioId, id), eq(negocioMembers.usuarioId, usuarioId)))
+			.delete(farmaciaMembers)
+			.where(and(eq(farmaciaMembers.farmaciaId, id), eq(farmaciaMembers.usuarioId, usuarioId)))
 			.run();
 		return { memberRemoved: true };
 	}

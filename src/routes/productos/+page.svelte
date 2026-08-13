@@ -147,7 +147,7 @@
               <a class="tile-nombre-link" href={`/menus/${p.menuId}`}>
                 <span class="tile-nombre">{p.nombre}</span>
               </a>
-              <span class="tile-ctx">{p.negocioNombre} · {p.menuNombre}</span>
+              <span class="tile-ctx">{p.farmaciaNombre} · {p.menuNombre}</span>
               <div class="tile-meta">
                 {#if p.precio != null}<span class="tile-precio">{fmtPrecio(p.precio)}</span>{/if}
                 {#if p.canManage}{@render pencil(p)}{/if}
@@ -173,7 +173,7 @@
           {:else}
             <a class="item-link" href={`/menus/${p.menuId}`}>
               <span class="item-nombre">{p.nombre}</span>
-              <span class="item-ctx">{p.negocioNombre} · {p.menuNombre}</span>
+              <span class="item-ctx">{p.farmaciaNombre} · {p.menuNombre}</span>
             </a>
             {#if p.precio != null}<span class="item-precio">{fmtPrecio(p.precio)}</span>{/if}
             {#if p.canManage}{@render pencil(p)}{/if}

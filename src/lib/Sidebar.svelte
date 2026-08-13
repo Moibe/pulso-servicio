@@ -15,20 +15,20 @@
   } = $props();
 
   // Edita estos items por las secciones reales de tu app.
-  // level = profundidad jerárquica (cada uno es subconjunto del anterior: Negocios > Menus > Productos),
+  // level = profundidad jerárquica (cada uno es subconjunto del anterior: Farmacias > Menus > Productos),
   // se usa para indentar el ítem y comunicar visualmente el anidamiento.
   const items = [
-    { href: '/', label: 'Negocios', level: 0 },
+    { href: '/', label: 'Farmacias', level: 0 },
     { href: '/menus', label: 'Menus', level: 1 },
     { href: '/productos', label: 'Productos', level: 2 }
   ];
 
   // El resaltado sigue el TIPO de contenido mostrado, no el prefijo de la URL:
-  // /negocios/[id] muestra menús → resalta "Menus"; /menus/[id] muestra productos → resalta "Productos".
+  // /farmacias/[id] muestra menús → resalta "Menus"; /menus/[id] muestra productos → resalta "Productos".
   function isActive(href: string) {
     const path = page.url.pathname;
     if (href === '/') return path === '/';
-    if (href === '/menus') return path === '/menus' || path.startsWith('/negocios/');
+    if (href === '/menus') return path === '/menus' || path.startsWith('/farmacias/');
     if (href === '/productos') return path === '/productos' || path.startsWith('/menus/');
     return path === href;
   }

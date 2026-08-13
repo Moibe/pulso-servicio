@@ -32,19 +32,19 @@
   </div>
 
   <div class="scope">
-    <h2>Negocios</h2>
-    {#if data.negocioNombres.length === 0}
+    <h2>Farmacias</h2>
+    {#if data.farmaciaNombres.length === 0}
       <p class="muted">
         {data.isAdmin
-          ? 'Todavía no hay negocios.'
-          : 'Todavía no eres miembro de ningún negocio. Pide a un administrador que te agregue.'}
+          ? 'Todavía no hay farmacias.'
+          : 'Todavía no eres miembro de ninguna farmacia. Pide a un administrador que te agregue.'}
       </p>
     {:else}
       <p>
-        {data.isAdmin ? 'Como administrador, estás en todos los negocios:' : 'Eres miembro de:'}
+        {data.isAdmin ? 'Como administrador, estás en todas las farmacias:' : 'Eres miembro de:'}
       </p>
       <ul class="lista">
-        {#each data.negocioNombres as nombre}<li>{nombre}</li>{/each}
+        {#each data.farmaciaNombres as nombre}<li>{nombre}</li>{/each}
       </ul>
     {/if}
   </div>

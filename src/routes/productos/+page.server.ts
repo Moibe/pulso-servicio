@@ -1,19 +1,19 @@
 import { fail } from '@sveltejs/kit';
 import { eq, inArray, desc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { productos, menus, negocios } from '$lib/server/db/schema';
-import { memberNegocioIds, ownerNegocioIds, requireManageNegocio } from '$lib/server/access';
+import { productos, menus, farmacias } from '$lib/server/db/schema';
+import { memberFarmaciaIds, ownerFarmaciaIds, requireManageFarmacia } from '$lib/server/access';
 import type { Actions, PageServerLoad } from './$types';
 
 // Todos los productos que el usuario puede ver (admins: todos; usuarios normales:
-// solo los de sus negocios asignados), con su menú, negocio y si lo puede administrar.
+// solo los de sus farmacias asignadas), con su menú, farmacia y si lo puede administrar.
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user!;
 	let scope;
 	if (!user.isAdmin) {
-		const ids = memberNegocioIds(user.id);
+		const ids = memberFarmaciaIds(user.id);
 		if (ids.length === 0) return { productos: [] };
-		scope = inArray(negocios.id, ids);
+		scope = inArray(farmacias.id, ids);
 	}
 
 	const lista = db
@@ -24,19 +24,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 			fotoPrincipal: productos.fotoPrincipal,
 			menuId: productos.menuId,
 			menuNombre: menus.nombre,
-			negocioId: negocios.id,
-			negocioNombre: negocios.nombre
+			farmaciaId: farmacias.id,
+			farmaciaNombre: farmacias.nombre
 		})
 		.from(productos)
 		.innerJoin(menus, eq(productos.menuId, menus.id))
-		.innerJoin(negocios, eq(menus.negocioId, negocios.id))
+		.innerJoin(farmacias, eq(menus.farmaciaId, farmacias.id))
 		.where(scope)
 		.orderBy(desc(productos.creadoEn))
 		.all();
 
-	const ownedIds = user.isAdmin ? null : new Set(ownerNegocioIds(user.id));
+	const ownedIds = user.isAdmin ? null : new Set(ownerFarmaciaIds(user.id));
 	return {
-		productos: lista.map((p) => ({ ...p, canManage: user.isAdmin || ownedIds!.has(p.negocioId) }))
+		productos: lista.map((p) => ({ ...p, canManage: user.isAdmin || ownedIds!.has(p.farmaciaId) }))
 	};
 };
 
@@ -49,13 +49,13 @@ export const actions: Actions = {
 		if (!nombre) return fail(400, { error: 'El nombre del producto no puede estar vacío.' });
 
 		const row = db
-			.select({ id: productos.id, negocioId: menus.negocioId })
+			.select({ id: productos.id, farmaciaId: menus.farmaciaId })
 			.from(productos)
 			.innerJoin(menus, eq(productos.menuId, menus.id))
 			.where(eq(productos.id, productoId))
 			.get();
 		if (!row) return fail(404, { error: 'Producto no encontrado' });
-		requireManageNegocio(locals.user, row.negocioId);
+		requireManageFarmacia(locals.user, row.farmaciaId);
 
 		db.update(productos).set({ nombre }).where(eq(productos.id, productoId)).run();
 		return { success: true };

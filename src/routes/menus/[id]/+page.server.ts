@@ -1,16 +1,16 @@
 import { fail } from '@sveltejs/kit';
 import { and, eq, desc, inArray } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { negocios, productos, productoFotos } from '$lib/server/db/schema';
+import { farmacias, productos, productoFotos } from '$lib/server/db/schema';
 import { saveImage, MediaError } from '$lib/server/media';
-import { resolveMenu } from '$lib/server/negocio-context';
-import { canManageNegocio, requireManageNegocio } from '$lib/server/access';
+import { resolveMenu } from '$lib/server/farmacia-context';
+import { canManageFarmacia, requireManageFarmacia } from '$lib/server/access';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const menu = resolveMenu(params.id, locals.user);
-	const negocio = db.select().from(negocios).where(eq(negocios.id, menu.negocioId)).get();
-	const canManage = canManageNegocio(locals.user, menu.negocioId);
+	const farmacia = db.select().from(farmacias).where(eq(farmacias.id, menu.farmaciaId)).get();
+	const canManage = canManageFarmacia(locals.user, menu.farmaciaId);
 
 	const lista = db
 		.select()
@@ -33,7 +33,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	return {
 		menu,
-		negocio,
+		farmacia,
 		canManage,
 		productos: lista.map((p) => ({ ...p, fotos: fotosPorProducto.get(p.id) ?? [] }))
 	};
@@ -42,7 +42,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 export const actions: Actions = {
 	agregarProducto: async ({ request, params, locals }) => {
 		const menu = resolveMenu(params.id, locals.user);
-		requireManageNegocio(locals.user, menu.negocioId);
+		requireManageFarmacia(locals.user, menu.farmaciaId);
 
 		const data = await request.formData();
 		const nombre = String(data.get('nombre') ?? '').trim();
@@ -89,7 +89,7 @@ export const actions: Actions = {
 
 	renombrarProducto: async ({ request, params, locals }) => {
 		const menu = resolveMenu(params.id, locals.user);
-		requireManageNegocio(locals.user, menu.negocioId);
+		requireManageFarmacia(locals.user, menu.farmaciaId);
 
 		const data = await request.formData();
 		const productoId = Number(data.get('productoId'));

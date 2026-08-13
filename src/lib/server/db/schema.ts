@@ -2,14 +2,14 @@ import { sqliteTable, integer, text, real, index, uniqueIndex } from 'drizzle-or
 import { relations } from 'drizzle-orm';
 
 // Jerarquía del dominio (uno-a-muchos en cascada):
-//   negocio ──< menú ──< producto
+//   farmacia ──< menú ──< producto
 // Borrar un padre arrastra a todos sus hijos (onDelete: 'cascade').
 //
-// Auth (basado en el patrón de shape_up): usuarios con sesión. Un negocio no tiene
-// dueño en su propia columna — su visibilidad y quién lo administra vive en
-// negocio_members. Los admins ven/editan todo. Los demás usuarios pueden crear su
-// propio negocio (nacen como "owner" de ese negocio_members) y administrarlo por
-// completo; en negocios donde solo son "member" son de solo lectura.
+// Auth (basado en el patrón de shape_up): usuarios con sesión. Una farmacia no tiene
+// dueño en su propia columna — su visibilidad y quién la administra vive en
+// farmacia_members. Los admins ven/editan todo. Los demás usuarios pueden crear su
+// propia farmacia (nacen como "owner" en farmacia_members) y administrarla por
+// completo; en farmacias donde solo son "member" son de solo lectura.
 
 // Helper: timestamp de creación por defecto = ahora.
 const creadoEn = () =>
@@ -23,7 +23,7 @@ export const usuarios = sqliteTable('usuarios', {
 	username: text('username').notNull().unique(),
 	// scrypt hash almacenado como "saltHex:hashHex".
 	passwordHash: text('password_hash').notNull(),
-	// Los admins gestionan usuarios y negocios; los demás son de solo lectura.
+	// Los admins gestionan usuarios y farmacias; los demás son de solo lectura.
 	isAdmin: integer('is_admin', { mode: 'boolean' }).notNull().default(false),
 	creadoEn: creadoEn()
 });
@@ -37,46 +37,46 @@ export const sessions = sqliteTable('sessions', {
 	expiresAt: integer('expires_at').notNull() // unix ms
 });
 
-// 1 negocio tiene varios menús. Sin dueño: la visibilidad la da negocio_members.
-export const negocios = sqliteTable('negocios', {
+// 1 farmacia tiene varios menús. Sin dueño: la visibilidad la da farmacia_members.
+export const farmacias = sqliteTable('farmacias', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	nombre: text('nombre').notNull(),
 	descripcion: text('descripcion'),
 	creadoEn: creadoEn()
 });
 
-// Qué usuarios (no-admin) pueden ver cada negocio. Los admins ven todos sin importar esto.
+// Qué usuarios (no-admin) pueden ver cada farmacia. Los admins ven todas sin importar esto.
 // rol: 'owner' (quien lo creó; puede gestionarlo por completo) | 'member' (solo lectura).
-export const negocioMembers = sqliteTable(
-	'negocio_members',
+export const farmaciaMembers = sqliteTable(
+	'farmacia_members',
 	{
 		id: integer('id').primaryKey({ autoIncrement: true }),
-		negocioId: integer('negocio_id')
+		farmaciaId: integer('farmacia_id')
 			.notNull()
-			.references(() => negocios.id, { onDelete: 'cascade' }),
+			.references(() => farmacias.id, { onDelete: 'cascade' }),
 		usuarioId: integer('usuario_id')
 			.notNull()
 			.references(() => usuarios.id, { onDelete: 'cascade' }),
 		rol: text('rol').notNull().default('member')
 	},
-	(t) => [uniqueIndex('negocio_members_unique').on(t.negocioId, t.usuarioId)]
+	(t) => [uniqueIndex('farmacia_members_unique').on(t.farmaciaId, t.usuarioId)]
 );
 
-// 1 menú pertenece a un negocio y tiene varios productos.
+// 1 menú pertenece a una farmacia y tiene varios productos.
 export const menus = sqliteTable(
 	'menus',
 	{
 		id: integer('id').primaryKey({ autoIncrement: true }),
-		negocioId: integer('negocio_id')
+		farmaciaId: integer('farmacia_id')
 			.notNull()
-			.references(() => negocios.id, { onDelete: 'cascade' }),
+			.references(() => farmacias.id, { onDelete: 'cascade' }),
 		nombre: text('nombre').notNull(),
-		// Para ordenar los menús dentro del negocio.
+		// Para ordenar los menús dentro de la farmacia.
 		orden: integer('orden').notNull().default(0),
 		activo: integer('activo', { mode: 'boolean' }).notNull().default(true),
 		creadoEn: creadoEn()
 	},
-	(t) => [index('menus_negocio_idx').on(t.negocioId)]
+	(t) => [index('menus_farmacia_idx').on(t.farmaciaId)]
 );
 
 // 1 producto pertenece a un menú.
@@ -118,25 +118,25 @@ export const productoFotos = sqliteTable(
 // Relaciones para la API de consultas de drizzle (db.query.*.findMany({ with: {...} })).
 export const usuariosRelations = relations(usuarios, ({ many }) => ({
 	sessions: many(sessions),
-	negocioMembers: many(negocioMembers)
+	farmaciaMembers: many(farmaciaMembers)
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
 	usuario: one(usuarios, { fields: [sessions.usuarioId], references: [usuarios.id] })
 }));
 
-export const negociosRelations = relations(negocios, ({ many }) => ({
+export const farmaciasRelations = relations(farmacias, ({ many }) => ({
 	menus: many(menus),
-	members: many(negocioMembers)
+	members: many(farmaciaMembers)
 }));
 
-export const negocioMembersRelations = relations(negocioMembers, ({ one }) => ({
-	negocio: one(negocios, { fields: [negocioMembers.negocioId], references: [negocios.id] }),
-	usuario: one(usuarios, { fields: [negocioMembers.usuarioId], references: [usuarios.id] })
+export const farmaciaMembersRelations = relations(farmaciaMembers, ({ one }) => ({
+	farmacia: one(farmacias, { fields: [farmaciaMembers.farmaciaId], references: [farmacias.id] }),
+	usuario: one(usuarios, { fields: [farmaciaMembers.usuarioId], references: [usuarios.id] })
 }));
 
 export const menusRelations = relations(menus, ({ one, many }) => ({
-	negocio: one(negocios, { fields: [menus.negocioId], references: [negocios.id] }),
+	farmacia: one(farmacias, { fields: [menus.farmaciaId], references: [farmacias.id] }),
 	productos: many(productos)
 }));
 
@@ -152,8 +152,8 @@ export const productoFotosRelations = relations(productoFotos, ({ one }) => ({
 // Tipos inferidos — úsalos en load functions y actions en vez de re-tipar a mano.
 export type Usuario = typeof usuarios.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
-export type Negocio = typeof negocios.$inferSelect;
-export type NegocioMember = typeof negocioMembers.$inferSelect;
+export type Farmacia = typeof farmacias.$inferSelect;
+export type FarmaciaMember = typeof farmaciaMembers.$inferSelect;
 export type Menu = typeof menus.$inferSelect;
 export type Producto = typeof productos.$inferSelect;
 export type ProductoFoto = typeof productoFotos.$inferSelect;

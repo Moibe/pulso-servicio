@@ -40,7 +40,7 @@
   }
 
   // Vista lista / mosaico, persistida en localStorage.
-  const VIEW_STORAGE_KEY = 'menu:negocio-menus-view';
+  const VIEW_STORAGE_KEY = 'menu:farmacia-menus-view';
   let viewMode = $state<'list' | 'mosaic'>('mosaic');
   onMount(() => {
     try {
@@ -113,9 +113,9 @@
 <section class="menus">
   <header class="head">
     <div class="titulos">
-      <h1>{data.negocio.nombre}</h1>
+      <h1>{data.farmacia.nombre}</h1>
       {#if data.canManage}
-        <a class="ajustes-link" href={`/negocios/${data.negocio.id}/settings`}>Ajustes y miembros</a>
+        <a class="ajustes-link" href={`/farmacias/${data.farmacia.id}/settings`}>Ajustes y miembros</a>
       {/if}
     </div>
     {#if data.canManage}
@@ -127,7 +127,7 @@
     <p class="vacio">
       {data.canManage
         ? 'Aún no hay menús. Crea el primero con “Agregar Menu”.'
-        : 'Este negocio todavía no tiene menús.'}
+        : 'Esta farmacia todavía no tiene menús.'}
     </p>
   {:else}
     <div class="toolbar">

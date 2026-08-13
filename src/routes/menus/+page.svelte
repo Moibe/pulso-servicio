@@ -125,7 +125,7 @@
   </header>
 
   {#if data.menus.length === 0}
-    <p class="vacio">Aún no hay menús. Crea uno desde la página de un negocio.</p>
+    <p class="vacio">Aún no hay menús. Crea uno desde la página de una farmacia.</p>
   {:else if viewMode === 'mosaic'}
     <ul class="mosaic">
       {#each data.menus as m (m.id)}
@@ -136,7 +136,7 @@
             <a class="tile-nombre-link" href={`/menus/${m.id}`}>
               <span class="tile-nombre">{m.nombre}</span>
             </a>
-            <span class="tile-ctx">{m.negocioNombre}</span>
+            <span class="tile-ctx">{m.farmaciaNombre}</span>
             {#if m.canManage}{@render pencil(m)}{/if}
           {/if}
         </li>
@@ -152,7 +152,7 @@
             <a class="item-link" href={`/menus/${m.id}`}>
               <span class="item-nombre">{m.nombre}</span>
             </a>
-            <span class="item-ctx">{m.negocioNombre}</span>
+            <span class="item-ctx">{m.farmaciaNombre}</span>
             {#if m.canManage}{@render pencil(m)}{/if}
           {/if}
         </li>

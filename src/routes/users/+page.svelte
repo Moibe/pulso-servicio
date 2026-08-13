@@ -169,7 +169,7 @@
         <input name="password" type="password" placeholder="Contraseña (mín. 4)" autocomplete="new-password" />
         <button class="btn primary" type="submit">Agregar</button>
       </div>
-      <label class="chk"><input type="checkbox" name="isAdmin" /> Administrador (puede gestionar usuarios y negocios)</label>
+      <label class="chk"><input type="checkbox" name="isAdmin" /> Administrador (puede gestionar usuarios y farmacias)</label>
       {#if form?.createError}<span class="err" role="alert">{form.createError}</span>{/if}
     </form>
   </div>

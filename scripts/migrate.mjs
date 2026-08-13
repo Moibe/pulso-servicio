@@ -11,7 +11,8 @@ const sqlite = new Database(url);
 // ANTES de que migrate() abra su transacción. Sin esto, un DROP TABLE sobre una
 // tabla padre (p. ej. al reconstruirla para quitar/agregar una columna con FK)
 // dispara el ON DELETE CASCADE y borra en cascada a sus hijos ANTES de recrearla
-// (nos pasó una vez: se perdieron menus/productos al reconstruir negocios).
+// (nos pasó una vez: se perdieron menus/productos al reconstruir negocios, la
+// tabla que hoy se llama farmacias).
 sqlite.pragma('foreign_keys = OFF');
 
 const db = drizzle(sqlite);
