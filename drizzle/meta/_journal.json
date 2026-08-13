@@ -43,6 +43,13 @@
       "when": 1786656657243,
       "tag": "0005_rename_negocios_a_farmacias",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1786661408231,
+      "tag": "0006_supervisores_y_empleados",
+      "breakpoints": true
     }
   ]
 }

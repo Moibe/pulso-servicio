@@ -23,6 +23,41 @@
   </form>
 
   <div class="members">
+    <h2>Personal</h2>
+    <p class="hint">
+      Supervisor y empleados de esta farmacia. Es personal, no cuentas de acceso; lo da de alta el
+      administrador desde <a href="/supervisores">Supervisores</a> y <a href="/empleados">Empleados</a>.
+    </p>
+
+    {#if data.isAdmin}
+      <form method="POST" action="?/setSupervisor" class="add-member" use:enhance>
+        <label class="sr-only" for="supervisorId">Supervisor</label>
+        <select id="supervisorId" name="supervisorId" value={farmacia.supervisorId ?? ''}>
+          <option value="">— Sin supervisor —</option>
+          {#each data.supervisores as s (s.id)}<option value={s.id}>{s.nombre}</option>{/each}
+        </select>
+        <button class="btn primary sm" type="submit">Guardar supervisor</button>
+      </form>
+      {#if form?.supervisorError}<span class="err" role="alert">{form.supervisorError}</span>{/if}
+      {#if form?.supervisorSet}<span class="ok" role="status">Supervisor actualizado.</span>{/if}
+    {:else}
+      <p class="empty-note">
+        Supervisor: {data.supervisorActual?.nombre ?? 'sin asignar'}
+      </p>
+    {/if}
+
+    {#if data.empleados.length === 0}
+      <p class="empty-note">Sin empleados asignados a esta farmacia.</p>
+    {:else}
+      <ul class="member-list">
+        {#each data.empleados as e (e.id)}
+          <li><span class="mname">{e.nombre}</span></li>
+        {/each}
+      </ul>
+    {/if}
+  </div>
+
+  <div class="members">
     <h2>Miembros</h2>
     <p class="hint">Quiénes (no-admins) pueden ver esta farmacia. Los administradores la ven siempre.</p>
 
@@ -267,5 +302,25 @@
     margin-top: 0.4rem;
     font-size: 0.78rem;
     color: #dc2626;
+  }
+  .ok {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    color: #15803d;
+  }
+  .members .hint a {
+    color: #2563eb;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 </style>

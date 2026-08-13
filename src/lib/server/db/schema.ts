@@ -37,13 +37,50 @@ export const sessions = sqliteTable('sessions', {
 	expiresAt: integer('expires_at').notNull() // unix ms
 });
 
-// 1 farmacia tiene varios menús. Sin dueño: la visibilidad la da farmacia_members.
-export const farmacias = sqliteTable('farmacias', {
+// ── Personal (NO entra al sistema) ────────────────────────────────────────────
+// Ojo con la distinción: `usuarios` son cuentas que hacen login; supervisores y
+// empleados son registros de plantilla, gente que no entra a la app. Por eso son
+// tablas aparte y no roles de farmacia_members. Hoy solo existen como catálogo:
+// quien los da de alta y los mueve es el admin.
+
+// Un supervisor supervisa VARIAS farmacias (la FK vive en farmacias).
+export const supervisores = sqliteTable('supervisores', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	nombre: text('nombre').notNull(),
-	descripcion: text('descripcion'),
 	creadoEn: creadoEn()
 });
+
+// 1 farmacia tiene varios menús. Sin dueño: la visibilidad la da farmacia_members.
+export const farmacias = sqliteTable(
+	'farmacias',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		nombre: text('nombre').notNull(),
+		descripcion: text('descripcion'),
+		// 1 supervisor por farmacia, opcional: se asigna después de crearla.
+		// set null (no cascade): borrar al supervisor deja la farmacia sin
+		// supervisor, no borra la farmacia.
+		supervisorId: integer('supervisor_id').references(() => supervisores.id, {
+			onDelete: 'set null'
+		}),
+		creadoEn: creadoEn()
+	},
+	(t) => [index('farmacias_supervisor_idx').on(t.supervisorId)]
+);
+
+// Un empleado pertenece a UNA farmacia a la vez; moverlo = cambiar farmaciaId.
+// Nullable + set null a propósito: si se borra la farmacia, el empleado queda
+// "sin asignar" en vez de desaparecer (es una persona, no un dato de la farmacia).
+export const empleados = sqliteTable(
+	'empleados',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		nombre: text('nombre').notNull(),
+		farmaciaId: integer('farmacia_id').references(() => farmacias.id, { onDelete: 'set null' }),
+		creadoEn: creadoEn()
+	},
+	(t) => [index('empleados_farmacia_idx').on(t.farmaciaId)]
+);
 
 // Qué usuarios (no-admin) pueden ver cada farmacia. Los admins ven todas sin importar esto.
 // rol: 'owner' (quien lo creó; puede gestionarlo por completo) | 'member' (solo lectura).
@@ -125,9 +162,22 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 	usuario: one(usuarios, { fields: [sessions.usuarioId], references: [usuarios.id] })
 }));
 
-export const farmaciasRelations = relations(farmacias, ({ many }) => ({
+export const supervisoresRelations = relations(supervisores, ({ many }) => ({
+	farmacias: many(farmacias)
+}));
+
+export const farmaciasRelations = relations(farmacias, ({ one, many }) => ({
 	menus: many(menus),
-	members: many(farmaciaMembers)
+	members: many(farmaciaMembers),
+	supervisor: one(supervisores, {
+		fields: [farmacias.supervisorId],
+		references: [supervisores.id]
+	}),
+	empleados: many(empleados)
+}));
+
+export const empleadosRelations = relations(empleados, ({ one }) => ({
+	farmacia: one(farmacias, { fields: [empleados.farmaciaId], references: [farmacias.id] })
 }));
 
 export const farmaciaMembersRelations = relations(farmaciaMembers, ({ one }) => ({
@@ -154,6 +204,8 @@ export type Usuario = typeof usuarios.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type Farmacia = typeof farmacias.$inferSelect;
 export type FarmaciaMember = typeof farmaciaMembers.$inferSelect;
+export type Supervisor = typeof supervisores.$inferSelect;
+export type Empleado = typeof empleados.$inferSelect;
 export type Menu = typeof menus.$inferSelect;
 export type Producto = typeof productos.$inferSelect;
 export type ProductoFoto = typeof productoFotos.$inferSelect;

@@ -1,9 +1,9 @@
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { farmacias, usuarios, farmaciaMembers } from '$lib/server/db/schema';
+import { farmacias, usuarios, farmaciaMembers, supervisores, empleados } from '$lib/server/db/schema';
 import { and, asc, eq } from 'drizzle-orm';
-import { requireManageFarmacia } from '$lib/server/access';
+import { requireAdmin, requireManageFarmacia } from '$lib/server/access';
 
 // Ajustes de farmacia — admin global, u owner de ESA farmacia. Renombrar, membresía
 // (quién más puede verla) y borrar.
@@ -34,7 +34,33 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		.map((u) => ({ ...u, rol: memberRoles.get(u.id) }));
 	const candidates = allUsers.filter((u) => !u.isAdmin && !memberRoles.has(u.id));
 
-	return { farmacia, members, candidates };
+	// Personal (supervisor y empleados). La gestión del personal es solo del
+	// admin, así que un owner no-admin lo ve pero no puede cambiarlo.
+	const isAdmin = !!locals.user?.isAdmin;
+	const todosSupervisores = db
+		.select({ id: supervisores.id, nombre: supervisores.nombre })
+		.from(supervisores)
+		.orderBy(asc(supervisores.nombre))
+		.all();
+	const supervisorActual = farmacia.supervisorId
+		? (todosSupervisores.find((s) => s.id === farmacia.supervisorId) ?? null)
+		: null;
+	const suEmpleados = db
+		.select({ id: empleados.id, nombre: empleados.nombre })
+		.from(empleados)
+		.where(eq(empleados.farmaciaId, id))
+		.orderBy(asc(empleados.nombre))
+		.all();
+
+	return {
+		farmacia,
+		members,
+		candidates,
+		isAdmin,
+		supervisores: todosSupervisores,
+		supervisorActual,
+		empleados: suEmpleados
+	};
 };
 
 function farmaciaId(params: { id: string }): number {
@@ -44,6 +70,28 @@ function farmaciaId(params: { id: string }): number {
 }
 
 export const actions: Actions = {
+	// Asignar / quitar supervisor. Solo admin (el personal lo gestiona el admin),
+	// aunque a esta página también entren los owners de la farmacia.
+	setSupervisor: async ({ request, params, locals }) => {
+		const id = farmaciaId(params);
+		requireManageFarmacia(locals.user, id);
+		requireAdmin(locals.user);
+
+		const raw = String((await request.formData()).get('supervisorId') ?? '').trim();
+		let supervisorId: number | null = null;
+		if (raw !== '') {
+			const n = Number(raw);
+			if (!Number.isInteger(n) || n <= 0) return fail(400, { supervisorError: 'Supervisor inválido.' });
+			// Debe existir: si no, la FK lo rechazaría con un error feo.
+			const existe = db.select({ id: supervisores.id }).from(supervisores).where(eq(supervisores.id, n)).get();
+			if (!existe) return fail(400, { supervisorError: 'Ese supervisor ya no existe.' });
+			supervisorId = n;
+		}
+
+		db.update(farmacias).set({ supervisorId }).where(eq(farmacias.id, id)).run();
+		return { supervisorSet: true };
+	},
+
 	rename: async ({ request, params, locals }) => {
 		const id = farmaciaId(params);
 		requireManageFarmacia(locals.user, id);
