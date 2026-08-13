@@ -1,8 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import { enhance } from '$app/forms';
-  import BrandIcon from '$lib/BrandIcon.svelte';
-  // TEMPORAL: los 3 candidatos de ícono lado a lado para elegir uno.
+  // TEMPORAL: los 2 candidatos de ícono lado a lado para elegir uno.
   import BrandIconAsclepio from '$lib/BrandIconAsclepio.svelte';
   import BrandIconPulso from '$lib/BrandIconPulso.svelte';
   import type { ActionData } from './$types';
@@ -21,14 +20,13 @@
 <div class="login-wrap">
   <div class="card">
     <div class="brand">
-      <BrandIcon size={26} />
+      <BrandIconAsclepio size={26} />
       <span class="brand-title">Pulso Servicio</span>
     </div>
 
     <!-- TEMPORAL: comparador de íconos. Al elegir uno, borrar este bloque
          y dejar solo el componente ganador arriba en .brand. -->
     <div class="icon-picker">
-      <div class="opt"><BrandIcon size={30} /><span>A · Caduceo</span></div>
       <div class="opt"><BrandIconAsclepio size={30} /><span>B · Asclepio</span></div>
       <div class="opt"><BrandIconPulso size={30} /><span>C · Pulso</span></div>
     </div>

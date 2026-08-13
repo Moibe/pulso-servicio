@@ -1,6 +1,8 @@
 <script lang="ts">
   // Opción B: bastón de Asclepio (UNA serpiente, sin alas) — el símbolo médico
   // técnicamente correcto (el caduceo de Hermes se usa por confusión histórica).
+  // 4 vueltas de amplitud pareja: además de serpiente, la onda se lee como un
+  // trazo de electro, que amarra con el nombre "Pulso".
   // Trazo tipo lucide, hereda el color con currentColor.
   let { size = 24 }: { size?: number } = $props();
 </script>
@@ -19,10 +21,10 @@
 >
   <!-- bastón -->
   <path d="M12 2.4v19.2" />
-  <!-- serpiente enrollada (3 vueltas alternando lado) -->
-  <path d="M12 20c5.6-1.2 5.6-3.8 0-5c-5.6-1.2-5.6-3.8 0-5c5.6-1.2 5.6-3.8 0-5" />
+  <!-- serpiente enrollada (4 vueltas alternando lado, ritmo de onda) -->
+  <path d="M12 20.5c-5.2-1-5.2-3 0-4c5.2-1 5.2-3 0-4c-5.2-1-5.2-3 0-4c5.2-1 5.2-3 0-4" />
   <!-- cabeza -->
-  <path d="M12 5c1.15-.75 2.5-.35 3.1.65" />
+  <path d="M12 4.5c1.15-.75 2.5-.35 3.1.65" />
 </svg>
 
 <style>
