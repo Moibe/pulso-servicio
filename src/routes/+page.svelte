@@ -499,6 +499,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
     width: 2rem;
     height: 2rem;
     flex-shrink: 0;
