@@ -16,6 +16,16 @@
     nombre = '';
   }
 
+  // Modales de personal (supervisor / empleado).
+  let showSupModal = $state(false);
+  let showEmpModal = $state(false);
+  function cerrarSup() {
+    showSupModal = false;
+  }
+  function cerrarEmp() {
+    showEmpModal = false;
+  }
+
   function autofocus(node: HTMLInputElement) {
     node.focus();
   }
@@ -62,7 +72,10 @@
 
 <svelte:window
   onkeydown={(e) => {
-    if (e.key === 'Escape' && showModal) cerrar();
+    if (e.key !== 'Escape') return;
+    if (showModal) cerrar();
+    if (showSupModal) cerrarSup();
+    if (showEmpModal) cerrarEmp();
   }}
 />
 
@@ -122,6 +135,83 @@
       <button type="button" class="btn-nuevo" onclick={abrir}>+ Agregar Menu</button>
     {/if}
   </header>
+
+  <!-- ── Personal: supervisor (1) + empleados (N) ── -->
+  <section class="personal">
+    <div class="personal-head">
+      <h2>Personal</h2>
+      {#if data.isAdmin}
+        <div class="personal-acciones">
+          <button type="button" class="btn-nuevo sm" onclick={() => (showSupModal = true)}>
+            {data.supervisorActual ? 'Cambiar Supervisor' : '+ Asignar Supervisor'}
+          </button>
+          <button type="button" class="btn-nuevo sm" onclick={() => (showEmpModal = true)}>
+            + Agregar Empleado
+          </button>
+        </div>
+      {/if}
+    </div>
+
+    {#if form?.personalError}<p class="err" role="alert">{form.personalError}</p>{/if}
+
+    <div class="personal-grid">
+      <!-- Supervisor -->
+      <div class="card">
+        <span class="card-tit">Supervisor</span>
+        {#if data.supervisorActual}
+          <div class="persona">
+            <span class="avatar sup" aria-hidden="true">
+              {data.supervisorActual.nombre.trim().slice(0, 1).toUpperCase()}
+            </span>
+            <span class="persona-nombre">{data.supervisorActual.nombre}</span>
+            {#if data.isAdmin}
+              <form method="POST" action="?/asignarSupervisor" use:enhance>
+                <input type="hidden" name="supervisorId" value="" />
+                <button type="submit" class="icon-btn quitar" aria-label="Quitar supervisor" title="Quitar supervisor">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                </button>
+              </form>
+            {/if}
+          </div>
+        {:else}
+          <p class="card-vacio">Sin supervisor asignado.</p>
+        {/if}
+      </div>
+
+      <!-- Empleados -->
+      <div class="card">
+        <span class="card-tit">Empleados <span class="cuenta">{data.empleados.length}</span></span>
+        {#if data.empleados.length === 0}
+          <p class="card-vacio">Sin empleados en esta farmacia.</p>
+        {:else}
+          <ul class="personas">
+            {#each data.empleados as e (e.id)}
+              <li class="persona">
+                <span class="avatar" aria-hidden="true">{e.nombre.trim().slice(0, 1).toUpperCase()}</span>
+                <span class="persona-nombre">{e.nombre}</span>
+                {#if data.isAdmin}
+                  <form
+                    method="POST"
+                    action="?/quitarEmpleado"
+                    use:enhance
+                    onsubmit={(ev) => {
+                      if (!confirm(`¿Quitar a "${e.nombre}" de esta farmacia? No se borra: queda sin asignar.`))
+                        ev.preventDefault();
+                    }}
+                  >
+                    <input type="hidden" name="empleadoId" value={e.id} />
+                    <button type="submit" class="icon-btn quitar" aria-label="Quitar de la farmacia" title="Quitar de la farmacia">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                    </button>
+                  </form>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </div>
+    </div>
+  </section>
 
   {#if data.menus.length === 0}
     <p class="vacio">
@@ -198,6 +288,104 @@
     {/if}
   {/if}
 </section>
+
+{#if showSupModal}
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+  <div class="overlay" onclick={cerrarSup}>
+    <div
+      class="modal"
+      role="dialog"
+      tabindex="-1"
+      aria-modal="true"
+      aria-label="Asignar supervisor"
+      onclick={(e) => e.stopPropagation()}
+    >
+      <h2>Supervisor de la farmacia</h2>
+      {#if data.supervisores.length === 0}
+        <p class="modal-nota">
+          Todavía no hay supervisores dados de alta. Créalos en <a href="/supervisores">Supervisores</a>.
+        </p>
+        <div class="acciones">
+          <button type="button" class="btn-cancelar" onclick={cerrarSup}>Cerrar</button>
+        </div>
+      {:else}
+        <p class="modal-nota">Un supervisor puede supervisar varias farmacias.</p>
+        <form
+          method="POST"
+          action="?/asignarSupervisor"
+          use:enhance={() => async ({ result, update }) => {
+            await update();
+            if (result.type === 'success') cerrarSup();
+          }}
+        >
+          <select name="supervisorId" value={data.farmacia.supervisorId ?? ''}>
+            <option value="">— Sin supervisor —</option>
+            {#each data.supervisores as s (s.id)}<option value={s.id}>{s.nombre}</option>{/each}
+          </select>
+          {#if form?.personalError}<p class="error">{form.personalError}</p>{/if}
+          <div class="acciones">
+            <button type="button" class="btn-cancelar" onclick={cerrarSup}>Cancelar</button>
+            <button type="submit" class="btn-ok">Guardar</button>
+          </div>
+        </form>
+      {/if}
+    </div>
+  </div>
+{/if}
+
+{#if showEmpModal}
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+  <div class="overlay" onclick={cerrarEmp}>
+    <div
+      class="modal"
+      role="dialog"
+      tabindex="-1"
+      aria-modal="true"
+      aria-label="Agregar empleado"
+      onclick={(e) => e.stopPropagation()}
+    >
+      <h2>Agregar empleado</h2>
+
+      <form
+        method="POST"
+        action="?/crearEmpleado"
+        use:enhance={() => async ({ result, update }) => {
+          await update();
+          if (result.type === 'success') cerrarEmp();
+        }}
+      >
+        <input use:autofocus type="text" name="nombre" placeholder="Nombre del empleado" autocomplete="off" />
+        {#if form?.personalError}<p class="error">{form.personalError}</p>{/if}
+        <div class="acciones">
+          <button type="button" class="btn-cancelar" onclick={cerrarEmp}>Cancelar</button>
+          <button type="submit" class="btn-ok">Crear</button>
+        </div>
+      </form>
+
+      <!-- Alternativa: traerse a alguien que hoy no está en ninguna farmacia. -->
+      {#if data.empleadosLibres.length > 0}
+        <div class="modal-alt">
+          <span class="alt-sep">o mover uno existente</span>
+          <form
+            method="POST"
+            action="?/asignarEmpleado"
+            use:enhance={() => async ({ result, update }) => {
+              await update();
+              if (result.type === 'success') cerrarEmp();
+            }}
+          >
+            <select name="empleadoId">
+              {#each data.empleadosLibres as e (e.id)}<option value={e.id}>{e.nombre}</option>{/each}
+            </select>
+            <div class="acciones">
+              <button type="submit" class="btn-ok ghost">Mover a esta farmacia</button>
+            </div>
+          </form>
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}
 
 {#if showModal}
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
@@ -289,6 +477,183 @@
   }
   .btn-nuevo:active {
     transform: translateY(1px);
+  }
+  .btn-nuevo.sm {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  /* ── Personal (supervisor + empleados) ── */
+  .personal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1rem 1.1rem 1.1rem;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    border-radius: 14px;
+  }
+  .personal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .personal h2 {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #15803d;
+  }
+  .personal-acciones {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .personal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 0.7rem;
+    /* Cada tarjeta se ajusta a su contenido: el supervisor (1 fila) no tiene
+       por qué estirarse a la altura de la lista de empleados. */
+    align-items: start;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.8rem 0.9rem;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    border-radius: 12px;
+  }
+  .card-tit {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(30, 41, 59, 0.55);
+  }
+  .cuenta {
+    font-size: 0.68rem;
+    background: rgba(0, 0, 0, 0.07);
+    color: rgba(30, 41, 59, 0.7);
+    border-radius: 999px;
+    padding: 0.05rem 0.4rem;
+    letter-spacing: 0;
+  }
+  .card-vacio {
+    margin: 0;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: rgba(30, 41, 59, 0.45);
+  }
+  .personas {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .persona {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  .persona-nombre {
+    flex: 1;
+    min-width: 0;
+    color: #1e293b;
+    font-weight: 500;
+    font-size: 0.92rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(37, 99, 235, 0.14);
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .avatar.sup {
+    background: rgba(22, 163, 74, 0.16);
+    color: #15803d;
+  }
+  .icon-btn.quitar {
+    color: rgba(30, 41, 59, 0.4);
+    width: 1.7rem;
+    height: 1.7rem;
+  }
+  .icon-btn.quitar:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+  }
+  .err {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #dc2626;
+  }
+  .modal-nota {
+    margin: 0 0 0.9rem;
+    font-size: 0.85rem;
+    color: rgba(30, 41, 59, 0.6);
+  }
+  .modal-nota a {
+    color: #2563eb;
+  }
+  .modal select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.65rem 0.8rem;
+    font: inherit;
+    font-size: 1rem;
+    color: #1e293b;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    border-radius: 10px;
+    outline: none;
+  }
+  .modal select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .modal-alt {
+    margin-top: 1.1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .alt-sep {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(30, 41, 59, 0.45);
+  }
+  .btn-ok.ghost {
+    background: transparent;
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.4);
+    box-shadow: none;
+  }
+  .btn-ok.ghost:hover {
+    background: rgba(37, 99, 235, 0.08);
   }
 
   .vacio {
