@@ -455,16 +455,18 @@
     color: rgba(30, 41, 59, 0.5);
     font-size: 0.75rem;
   }
-  /* Orden visual (izq→der): lápiz, ajustes, bote — el engrane en medio. */
+  /* Orden visual (izq→der): lápiz, ajustes, bote — el engrane en medio.
+     Separados 0.6rem entre sí (antes quedaban pegados: el intervalo igualaba
+     el ancho del icon-btn, así que no dejaba hueco). */
   .tile .icon-btn.edit {
     position: absolute;
     top: 0.4rem;
-    right: 4.4rem;
+    right: 5.6rem;
   }
   .tile .icon-btn.settings {
     position: absolute;
     top: 0.4rem;
-    right: 2.4rem;
+    right: 3rem;
   }
   .tile .icon-btn.delete {
     position: absolute;
