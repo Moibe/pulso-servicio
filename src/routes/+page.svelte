@@ -536,12 +536,14 @@
     color: #15803d;
   }
   .icon-btn.settings {
-    color: rgba(30, 41, 59, 0.5);
+    color: rgba(30, 41, 59, 0.55);
+    border-color: rgba(30, 41, 59, 0.25);
     text-decoration: none;
   }
   .icon-btn.settings:hover {
     background: rgba(0, 0, 0, 0.06);
     color: #1e293b;
+    border-color: rgba(30, 41, 59, 0.4);
   }
 
   /* Modal */
