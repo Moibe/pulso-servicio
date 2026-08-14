@@ -1,12 +1,18 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { enhance } from '$app/forms';
+  import ConfirmDialog from '$lib/ConfirmDialog.svelte';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
   let showModal = $state(false);
   let nombre = $state('');
+
+  // Borrar farmacia: un solo modal + form compartidos por todas las tarjetas
+  // (nunca hay más de un borrado pendiente a la vez).
+  let pendingDelete = $state<{ id: number; nombre: string } | null>(null);
+  let deleteFormEl: HTMLFormElement;
 
   function abrir() {
     showModal = true;
@@ -117,6 +123,18 @@
   </a>
 {/snippet}
 
+{#snippet trash(p: { id: number; nombre: string })}
+  <button
+    type="button"
+    class="icon-btn delete"
+    onclick={() => (pendingDelete = p)}
+    aria-label="Borrar farmacia"
+    title="Borrar farmacia"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
+  </button>
+{/snippet}
+
 <section class="farmacias">
   <header class="head">
     <h1>Farmacias</h1>
@@ -173,6 +191,7 @@
               {#if p.canManage}
                 {@render settingsLink(p)}
                 {@render pencil(p)}
+                {@render trash(p)}
               {/if}
             {/if}
           </li>
@@ -192,6 +211,7 @@
               {#if p.canManage}
                 {@render settingsLink(p)}
                 {@render pencil(p)}
+                {@render trash(p)}
               {/if}
             {/if}
           </li>
@@ -234,7 +254,37 @@
   </div>
 {/if}
 
+<!-- Form oculto compartido por todas las tarjetas: solo hay un borrado
+     pendiente a la vez, así que no hace falta un form por tarjeta. -->
+<form
+  method="POST"
+  action="?/borrarFarmacia"
+  bind:this={deleteFormEl}
+  use:enhance={() => async ({ update }) => {
+    await update();
+  }}
+  class="hidden-form"
+>
+  <input type="hidden" name="farmaciaId" value={pendingDelete?.id ?? ''} />
+</form>
+
+<ConfirmDialog
+  open={pendingDelete !== null}
+  title="Borrar farmacia"
+  message={pendingDelete
+    ? `¿Borrar "${pendingDelete.nombre}"? Es permanente. Sus empleados no se borran: quedan sin asignar.`
+    : ''}
+  onConfirm={() => {
+    deleteFormEl.requestSubmit();
+    pendingDelete = null;
+  }}
+  onCancel={() => (pendingDelete = null)}
+/>
+
 <style>
+  .hidden-form {
+    display: none;
+  }
   .farmacias {
     display: flex;
     flex-direction: column;
@@ -415,6 +465,11 @@
     top: 0.4rem;
     right: 2.4rem;
   }
+  .tile .icon-btn.delete {
+    position: absolute;
+    top: 0.4rem;
+    right: 4.4rem;
+  }
   .tile .edit-form {
     width: 100%;
   }
@@ -463,6 +518,14 @@
   .icon-btn.edit:hover {
     background: rgba(37, 99, 235, 0.12);
     border-color: rgba(37, 99, 235, 0.45);
+  }
+  .icon-btn.delete {
+    color: #dc2626;
+    border-color: rgba(220, 38, 38, 0.25);
+  }
+  .icon-btn.delete:hover {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: rgba(220, 38, 38, 0.45);
   }
   .icon-btn.save {
     color: #16a34a;

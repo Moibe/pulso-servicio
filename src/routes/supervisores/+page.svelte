@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import ConfirmDialog from '$lib/ConfirmDialog.svelte';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -12,6 +13,11 @@
   // y el set de farmacias marcadas en el checklist (bind:group las mantiene).
   let showAsignarId = $state<number | null>(null);
   let selectedFarmaciaIds = $state<number[]>([]);
+
+  // Borrar: un solo modal + form compartidos (nunca hay más de un borrado
+  // pendiente a la vez).
+  let pendingDelete = $state<{ id: number; nombre: string; numFarmacias: number } | null>(null);
+  let deleteFormEl: HTMLFormElement;
 
   function abrir() {
     showModal = true;
@@ -64,23 +70,15 @@
 {/snippet}
 
 {#snippet trash(s: { id: number; nombre: string; numFarmacias: number })}
-  <form
-    method="POST"
-    action="?/borrar"
-    use:enhance
-    onsubmit={(ev) => {
-      const msg =
-        s.numFarmacias > 0
-          ? `¿Borrar a "${s.nombre}"? Sus ${s.numFarmacias} farmacia(s) quedarán sin supervisor (no se borran).`
-          : `¿Borrar a "${s.nombre}"?`;
-      if (!confirm(msg)) ev.preventDefault();
-    }}
+  <button
+    type="button"
+    class="icon-btn delete"
+    onclick={() => (pendingDelete = s)}
+    aria-label="Borrar"
+    title="Borrar"
   >
-    <input type="hidden" name="supervisorId" value={s.id} />
-    <button type="submit" class="icon-btn delete" aria-label="Borrar" title="Borrar">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
-    </button>
-  </form>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
+  </button>
 {/snippet}
 
 <section class="wrap">
@@ -234,7 +232,39 @@
   </div>
 {/if}
 
+<!-- Form oculto compartido por todas las filas: solo hay un borrado pendiente
+     a la vez, así que no hace falta un form por fila. -->
+<form
+  method="POST"
+  action="?/borrar"
+  bind:this={deleteFormEl}
+  use:enhance={() => async ({ update }) => {
+    await update();
+  }}
+  class="hidden-form"
+>
+  <input type="hidden" name="supervisorId" value={pendingDelete?.id ?? ''} />
+</form>
+
+<ConfirmDialog
+  open={pendingDelete !== null}
+  title="Borrar supervisor"
+  message={pendingDelete
+    ? pendingDelete.numFarmacias > 0
+      ? `¿Borrar a "${pendingDelete.nombre}"? Sus ${pendingDelete.numFarmacias} farmacia(s) quedarán sin supervisor (no se borran).`
+      : `¿Borrar a "${pendingDelete.nombre}"?`
+    : ''}
+  onConfirm={() => {
+    deleteFormEl.requestSubmit();
+    pendingDelete = null;
+  }}
+  onCancel={() => (pendingDelete = null)}
+/>
+
 <style>
+  .hidden-form {
+    display: none;
+  }
   .wrap {
     display: flex;
     flex-direction: column;

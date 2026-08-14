@@ -1,10 +1,16 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import Avatar from '$lib/Avatar.svelte';
+  import ConfirmDialog from '$lib/ConfirmDialog.svelte';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const meId = $derived(data.user?.id ?? -1);
+
+  // Borrar: un solo modal + form compartidos (nunca hay más de un borrado
+  // pendiente a la vez).
+  let pendingDelete = $state<{ id: number; username: string } | null>(null);
+  let deleteFormEl: HTMLFormElement;
 
   function fmt(d: Date | string | number) {
     return new Date(d).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -133,26 +139,7 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
             </button>
             {#if u.id !== meId}
-              <form
-                method="POST"
-                action="?/delete"
-                use:enhance={() => {
-                  return async ({ result, update }) => {
-                    await update();
-                  };
-                }}
-              >
-                <input type="hidden" name="userId" value={u.id} />
-                <button
-                  class="btn danger sm"
-                  type="submit"
-                  onclick={(e) => {
-                    if (!confirm(`¿Borrar al usuario "${u.username}"? Perderá el acceso.`)) e.preventDefault();
-                  }}
-                >
-                  Borrar
-                </button>
-              </form>
+              <button type="button" class="btn danger sm" onclick={() => (pendingDelete = u)}>Borrar</button>
             {/if}
           </div>
         {/if}
@@ -175,7 +162,35 @@
   </div>
 </section>
 
+<!-- Form oculto compartido por todas las filas: solo hay un borrado pendiente
+     a la vez, así que no hace falta un form por fila. -->
+<form
+  method="POST"
+  action="?/delete"
+  bind:this={deleteFormEl}
+  use:enhance={() => async ({ update }) => {
+    await update();
+  }}
+  class="hidden-form"
+>
+  <input type="hidden" name="userId" value={pendingDelete?.id ?? ''} />
+</form>
+
+<ConfirmDialog
+  open={pendingDelete !== null}
+  title="Borrar usuario"
+  message={pendingDelete ? `¿Borrar al usuario "${pendingDelete.username}"? Perderá el acceso.` : ''}
+  onConfirm={() => {
+    deleteFormEl.requestSubmit();
+    pendingDelete = null;
+  }}
+  onCancel={() => (pendingDelete = null)}
+/>
+
 <style>
+  .hidden-form {
+    display: none;
+  }
   .wrap {
     max-width: 640px;
     display: flex;

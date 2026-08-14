@@ -54,5 +54,17 @@ export const actions: Actions = {
 
 		db.update(farmacias).set({ nombre }).where(eq(farmacias.id, farmaciaId)).run();
 		return { success: true };
+	},
+
+	// Igual que el borrado de /farmacias/[id]/settings (mismo permiso, mismo
+	// efecto), pero desde la tarjeta: no hace falta redirect porque ya estás
+	// en el home. Sus empleados no se borran: quedan sin asignar (ON DELETE SET NULL).
+	borrarFarmacia: async ({ request, locals }) => {
+		const farmaciaId = Number((await request.formData()).get('farmaciaId'));
+		if (!Number.isInteger(farmaciaId)) return fail(400, { error: 'Farmacia inválida' });
+		requireManageFarmacia(locals.user, farmaciaId);
+
+		db.delete(farmacias).where(eq(farmacias.id, farmaciaId)).run();
+		return { success: true };
 	}
 };

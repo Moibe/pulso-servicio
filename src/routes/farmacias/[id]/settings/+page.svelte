@@ -1,9 +1,13 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import ConfirmDialog from '$lib/ConfirmDialog.svelte';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   const farmacia = $derived(data.farmacia);
+
+  let showDeleteConfirm = $state(false);
+  let deleteFormEl: HTMLFormElement;
 </script>
 
 <div class="wrap">
@@ -100,15 +104,8 @@
 
   <div class="danger-zone">
     <h2>Borrar</h2>
-    <form method="POST" action="?/delete" use:enhance>
-      <button
-        class="btn danger"
-        type="submit"
-        onclick={(e) => {
-          if (!confirm(`¿Borrar "${farmacia.nombre}"? Es permanente. Sus empleados no se borran: quedan sin asignar.`))
-            e.preventDefault();
-        }}
-      >
+    <form method="POST" action="?/delete" use:enhance bind:this={deleteFormEl}>
+      <button class="btn danger" type="button" onclick={() => (showDeleteConfirm = true)}>
         Borrar farmacia
       </button>
     </form>
@@ -117,6 +114,17 @@
     </p>
   </div>
 </div>
+
+<ConfirmDialog
+  open={showDeleteConfirm}
+  title="Borrar farmacia"
+  message={`¿Borrar "${farmacia.nombre}"? Es permanente. Sus empleados no se borran: quedan sin asignar.`}
+  onConfirm={() => {
+    showDeleteConfirm = false;
+    deleteFormEl.requestSubmit();
+  }}
+  onCancel={() => (showDeleteConfirm = false)}
+/>
 
 <style>
   .wrap {
