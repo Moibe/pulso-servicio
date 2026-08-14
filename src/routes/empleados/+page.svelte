@@ -26,17 +26,6 @@
     node.focus();
     node.select();
   }
-
-  // Agrupa por farmacia para que se lea como una plantilla, no como una lista plana.
-  const grupos = $derived.by(() => {
-    const porFarmacia = data.farmacias.map((f) => ({
-      id: f.id,
-      nombre: f.nombre,
-      empleados: data.empleados.filter((e) => e.farmaciaId === f.id)
-    }));
-    const sinAsignar = data.empleados.filter((e) => e.farmaciaId === null);
-    return { porFarmacia, sinAsignar };
-  });
 </script>
 
 <svelte:window
@@ -45,7 +34,7 @@
   }}
 />
 
-{#snippet fila(e: { id: number; nombre: string; farmaciaId: number | null })}
+{#snippet fila(e: { id: number; nombre: string; farmaciaId: number | null; farmaciaNombre: string | null })}
   <li class="item">
     {#if editingId === e.id}
       <form
@@ -72,7 +61,10 @@
         <button type="button" class="btn ghost sm" onclick={cancelEdit}>Cancelar</button>
       </form>
     {:else}
-      <span class="nombre">{e.nombre}</span>
+      <div class="info">
+        <span class="nombre">{e.nombre}</span>
+        <span class="sub" class:muted={!e.farmaciaNombre}>{e.farmaciaNombre ?? 'Sin asignar'}</span>
+      </div>
 
       <!-- Mover: al cambiar el select se envía solo (sin botón extra). -->
       <form method="POST" action="?/mover" class="mover" use:enhance>
@@ -120,30 +112,9 @@
   {#if data.empleados.length === 0}
     <p class="vacio">Aún no hay empleados. Crea el primero con “Empleado Nuevo”.</p>
   {:else}
-    {#if grupos.sinAsignar.length > 0}
-      <div class="grupo">
-        <h2 class="grupo-tit sin">Sin asignar <span class="cuenta">{grupos.sinAsignar.length}</span></h2>
-        <ul class="lista">
-          {#each grupos.sinAsignar as e (e.id)}{@render fila(e)}{/each}
-        </ul>
-      </div>
-    {/if}
-
-    {#each grupos.porFarmacia as g (g.id)}
-      <div class="grupo">
-        <h2 class="grupo-tit">
-          <a href={`/farmacias/${g.id}`}>{g.nombre}</a>
-          <span class="cuenta">{g.empleados.length}</span>
-        </h2>
-        {#if g.empleados.length === 0}
-          <p class="vacio-grupo">Sin empleados en esta farmacia.</p>
-        {:else}
-          <ul class="lista">
-            {#each g.empleados as e (e.id)}{@render fila(e)}{/each}
-          </ul>
-        {/if}
-      </div>
-    {/each}
+    <ul class="lista">
+      {#each data.empleados as e (e.id)}{@render fila(e)}{/each}
+    </ul>
   {/if}
   {#if form?.error}<p class="err" role="alert">{form.error}</p>{/if}
 </section>
@@ -214,45 +185,6 @@
     font-size: 0.95rem;
     margin: 0;
   }
-  .grupo {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .grupo-tit {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0.6rem 0 0;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #15803d;
-  }
-  .grupo-tit a {
-    color: inherit;
-    text-decoration: none;
-  }
-  .grupo-tit a:hover {
-    text-decoration: underline;
-  }
-  .grupo-tit.sin {
-    color: rgba(30, 41, 59, 0.5);
-  }
-  .cuenta {
-    font-size: 0.7rem;
-    background: rgba(0, 0, 0, 0.07);
-    color: rgba(30, 41, 59, 0.7);
-    border-radius: 999px;
-    padding: 0.05rem 0.45rem;
-  }
-  .vacio-grupo {
-    color: rgba(30, 41, 59, 0.45);
-    font-size: 0.85rem;
-    font-style: italic;
-    margin: 0;
-  }
   .btn-nuevo {
     background: #2563eb;
     color: #fff;
@@ -288,14 +220,27 @@
   .item:hover {
     background: rgba(255, 255, 255, 0.8);
   }
-  .nombre {
+  .info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .nombre {
     color: #1e293b;
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .sub {
+    font-size: 0.78rem;
+    color: rgba(30, 41, 59, 0.55);
+  }
+  .sub.muted {
+    font-style: italic;
+    color: rgba(30, 41, 59, 0.4);
   }
   .mover select,
   .modal select {
