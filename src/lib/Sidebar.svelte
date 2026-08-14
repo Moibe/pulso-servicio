@@ -70,6 +70,28 @@
   }
 </script>
 
+<!-- Un ícono por sección (trazo, no relleno): pin de ubicación para Farmacias
+     (son sucursales físicas), persona+check para Supervisores, dos personas
+     para Empleados. stroke="currentColor" en el <svg> que las usa, así que
+     heredan el color normal/activo del .nav-item sin CSS aparte. -->
+{#snippet iconFarmacias()}
+  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+  <circle cx="12" cy="10" r="3" />
+{/snippet}
+
+{#snippet iconSupervisores()}
+  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+  <circle cx="9" cy="7" r="4" />
+  <polyline points="16 11 18 13 22 9" />
+{/snippet}
+
+{#snippet iconEmpleados()}
+  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+  <circle cx="9" cy="7" r="4" />
+  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+{/snippet}
+
 {#if !collapsed}
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <button type="button" class="scrim" onclick={toggleCollapsed} aria-label="Cerrar barra"></button>
@@ -92,7 +114,25 @@
           {#if it.level > 0}
             <span class="nav-branch" aria-hidden="true"></span>
           {/if}
-          <span class="nav-ico" class:nav-ico-sub={it.level > 0} aria-hidden="true"></span>
+          <svg
+            class="nav-ico"
+            class:nav-ico-sub={it.level > 0}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            {#if it.href === '/'}
+              {@render iconFarmacias()}
+            {:else if it.href === '/supervisores'}
+              {@render iconSupervisores()}
+            {:else if it.href === '/empleados'}
+              {@render iconEmpleados()}
+            {/if}
+          </svg>
           <span>{it.label}</span>
         </a>
       {/each}
@@ -177,16 +217,14 @@
     border-color: rgba(37, 99, 235, 0.4);
   }
   .nav-ico {
-    width: 16px;
-    height: 16px;
-    border-radius: 5px;
+    width: 17px;
+    height: 17px;
     flex-shrink: 0;
-    background: rgba(37, 99, 235, 0.45);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    /* sin color propio: hereda currentColor del .nav-item (normal o activo) */
   }
   .nav-ico-sub {
-    width: 12px;
-    height: 12px;
+    width: 13px;
+    height: 13px;
   }
   .nav-item:hover {
     background: rgba(0, 0, 0, 0.06);
@@ -197,9 +235,6 @@
     background: rgba(37, 99, 235, 0.12);
     border-color: rgba(37, 99, 235, 0.35);
     box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12) inset;
-  }
-  .nav-item[aria-current='page'] .nav-ico {
-    background: #2563eb;
   }
   .sidebar-footer {
     display: flex;
