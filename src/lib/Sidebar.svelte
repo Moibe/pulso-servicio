@@ -90,16 +90,9 @@
     </nav>
 
     {#if isAdmin}
-      <!-- Zona de admin: cuentas de acceso (usuarios) + personal (supervisores/empleados). -->
+      <!-- Personal de las farmacias. Las CUENTAS de acceso (/users) no están aquí:
+           viven en /me, porque solo el admin las crea y no son navegación diaria. -->
       <div class="admin-block">
-        <a
-          href="/users"
-          class="admin-link"
-          aria-current={page.url.pathname.startsWith('/users') ? 'page' : undefined}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-          Usuarios
-        </a>
         <a
           href="/supervisores"
           class="admin-link"

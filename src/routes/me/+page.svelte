@@ -49,6 +49,19 @@
     {/if}
   </div>
 
+  <!-- Gestión de cuentas: vive aquí (y no en el sidebar) porque solo el admin
+       crea usuarios, así que es parte de "lo tuyo" y no de la navegación diaria. -->
+  {#if data.isAdmin}
+    <div class="admin">
+      <h2>Administración</h2>
+      <a class="admin-link" href="/users">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+        Gestionar usuarios
+      </a>
+      <p class="muted small">Crear cuentas de acceso, cambiar su contraseña o darlas de baja.</p>
+    </div>
+  {/if}
+
   <div class="pw">
     <button type="button" class="pw-toggle" aria-expanded={pwOpen} onclick={() => (pwOpen = !pwOpen)}>
       Cambiar contraseña
@@ -148,6 +161,29 @@
     color: #1e293b;
     line-height: 1.7;
     font-size: 0.9rem;
+  }
+  .admin-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+    padding: 0.5rem 0.85rem;
+    color: #15803d;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: rgba(22, 163, 74, 0.08);
+    border: 1px solid rgba(22, 163, 74, 0.28);
+    border-radius: 10px;
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+  .admin-link:hover {
+    background: rgba(22, 163, 74, 0.16);
+    border-color: rgba(22, 163, 74, 0.5);
+  }
+  .small {
+    font-size: 0.82rem;
+    margin: 0.5rem 0 0;
   }
   .pw-toggle {
     display: inline-flex;

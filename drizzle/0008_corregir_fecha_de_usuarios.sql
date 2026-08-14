@@ -1,0 +1,14 @@
+-- Custom SQL migration file, put your code below! --
+-- Repara las fechas de alta que quedaron en milisegundos.
+--
+-- `creado_en` está declarado como `mode: 'timestamp'`, que en drizzle/SQLite son
+-- SEGUNDOS unix. scripts/seed.mjs insertaba con SQL crudo (sin la conversión de
+-- drizzle) pasando Date.now(), que son milisegundos: el perfil del admin mostraba
+-- "Desde 26 jun 58521". El seed ya quedó corregido; esto arregla lo ya guardado.
+--
+-- El umbral 100000000000 (1e11) distingue sin ambigüedad: en segundos equivale al
+-- año 5138, así que cualquier valor por encima solo puede ser milisegundos.
+-- Solo aplica a `usuarios`: el resto de tablas se escriben vía drizzle, que sí
+-- convierte, y esta migración es idempotente (al segundo pase ya nada supera el
+-- umbral).
+UPDATE `usuarios` SET `creado_en` = `creado_en` / 1000 WHERE `creado_en` > 100000000000;

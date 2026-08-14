@@ -13,10 +13,13 @@ const hashPw = (pw) => {
 };
 
 if (db.prepare('SELECT COUNT(*) AS n FROM usuarios').get().n === 0) {
+	// OJO: creado_en es `mode: 'timestamp'` en el schema, o sea SEGUNDOS unix.
+	// Aquí se inserta con SQL crudo, así que no hay conversión de drizzle que
+	// valga: pasar Date.now() (milisegundos) guardaba fechas del año 58521.
 	db.prepare('INSERT INTO usuarios (username, password_hash, is_admin, creado_en) VALUES (?, ?, 1, ?)').run(
 		'admin',
 		hashPw('admin'),
-		Date.now()
+		Math.floor(Date.now() / 1000)
 	);
 	console.log('Usuario inicial creado → usuario: admin · contraseña: admin  (¡cámbiala!)');
 } else {

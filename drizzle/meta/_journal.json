@@ -57,6 +57,13 @@
       "when": 1786670271227,
       "tag": "0007_quitar_menus_y_productos",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1786676101328,
+      "tag": "0008_corregir_fecha_de_usuarios",
+      "breakpoints": true
     }
   ]
 }
