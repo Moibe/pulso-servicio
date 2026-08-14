@@ -113,8 +113,8 @@
     <button type="button" class="btn-nuevo" onclick={() => (showModal = true)}>+ Empleado Nuevo</button>
   </header>
   <p class="hint">
-    Personal de las farmacias. No son cuentas de acceso: para eso están los <a href="/users">usuarios</a>.
-    Cada empleado pertenece a una sola farmacia; para moverlo, cambia su farmacia en la lista.
+    Personal de las farmacias. Cada empleado pertenece a una sola farmacia; para moverlo, cambia su
+    farmacia en la lista.
   </p>
 
   {#if data.empleados.length === 0}
@@ -208,9 +208,6 @@
     color: rgba(30, 41, 59, 0.6);
     font-size: 0.85rem;
     margin: 0;
-  }
-  .hint a {
-    color: #2563eb;
   }
   .vacio {
     color: rgba(30, 41, 59, 0.65);
