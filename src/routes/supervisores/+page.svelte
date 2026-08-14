@@ -51,6 +51,38 @@
   }}
 />
 
+{#snippet pencil(s: { id: number; nombre: string })}
+  <button
+    type="button"
+    class="icon-btn edit"
+    onclick={() => startEdit(s)}
+    aria-label="Editar nombre"
+    title="Editar nombre"
+  >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+  </button>
+{/snippet}
+
+{#snippet trash(s: { id: number; nombre: string; numFarmacias: number })}
+  <form
+    method="POST"
+    action="?/borrar"
+    use:enhance
+    onsubmit={(ev) => {
+      const msg =
+        s.numFarmacias > 0
+          ? `¿Borrar a "${s.nombre}"? Sus ${s.numFarmacias} farmacia(s) quedarán sin supervisor (no se borran).`
+          : `¿Borrar a "${s.nombre}"?`;
+      if (!confirm(msg)) ev.preventDefault();
+    }}
+  >
+    <input type="hidden" name="supervisorId" value={s.id} />
+    <button type="submit" class="icon-btn delete" aria-label="Borrar" title="Borrar">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
+    </button>
+  </form>
+{/snippet}
+
 <section class="wrap">
   <header class="head">
     <h1>Supervisores</h1>
@@ -92,7 +124,11 @@
             </form>
           {:else}
             <div class="info">
-              <span class="nombre">{s.nombre}</span>
+              <div class="nombre-row">
+                <span class="nombre">{s.nombre}</span>
+                {@render pencil(s)}
+                {@render trash(s)}
+              </div>
               {#if s.numFarmacias === 0}
                 <span class="sub muted">Sin farmacias asignadas</span>
               {:else}
@@ -103,22 +139,6 @@
               {/if}
             </div>
             <button type="button" class="btn ghost sm" onclick={() => abrirAsignar(s)}>Asignar Farmacias</button>
-            <button type="button" class="btn ghost sm" onclick={() => startEdit(s)}>Renombrar</button>
-            <form
-              method="POST"
-              action="?/borrar"
-              use:enhance
-              onsubmit={(e) => {
-                const msg =
-                  s.numFarmacias > 0
-                    ? `¿Borrar a "${s.nombre}"? Sus ${s.numFarmacias} farmacia(s) quedarán sin supervisor (no se borran).`
-                    : `¿Borrar a "${s.nombre}"?`;
-                if (!confirm(msg)) e.preventDefault();
-              }}
-            >
-              <input type="hidden" name="supervisorId" value={s.id} />
-              <button type="submit" class="btn danger sm">Borrar</button>
-            </form>
           {/if}
         </li>
       {/each}
@@ -283,9 +303,20 @@
     flex-direction: column;
     gap: 0.15rem;
   }
+  .nombre-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+  }
   .nombre {
+    flex: 1;
+    min-width: 0;
     color: #1e293b;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .sub {
     font-size: 0.8rem;
@@ -344,14 +375,39 @@
   .btn.ghost:hover {
     border-color: rgba(0, 0, 0, 0.3);
   }
-  .btn.danger {
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    padding: 0;
     background: transparent;
-    border-color: rgba(220, 38, 38, 0.4);
-    color: #dc2626;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: rgba(30, 41, 59, 0.5);
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
   }
-  .btn.danger:hover {
-    background: rgba(220, 38, 38, 0.08);
-    border-color: #dc2626;
+  .icon-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+  .icon-btn.edit {
+    color: #2563eb;
+    border-color: rgba(37, 99, 235, 0.25);
+  }
+  .icon-btn.edit:hover {
+    background: rgba(37, 99, 235, 0.12);
+    border-color: rgba(37, 99, 235, 0.45);
+  }
+  .icon-btn.delete {
+    color: #dc2626;
+    border-color: rgba(220, 38, 38, 0.25);
+  }
+  .icon-btn.delete:hover {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: rgba(220, 38, 38, 0.45);
   }
   .err {
     color: #dc2626;
