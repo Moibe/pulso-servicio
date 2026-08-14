@@ -1,6 +1,11 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { browser } from '$app/environment';
+  // El favicon es el bastón de Asclepio de $lib/BrandIconAsclepio.svelte, pero
+  // adaptado a 16px: fondo sólido (sin él desaparece en pestañas oscuras), trazo
+  // más grueso y una vuelta menos de serpiente, que a ese tamaño se emplasta.
+  // Ojo: Vite lo embebe como data-URI en cada página, así que el .svg va sin
+  // comentarios ni espacios de más — todo lo que tenga dentro viaja.
   import favicon from '$lib/assets/favicon.svg';
   import TopNav from '$lib/TopNav.svelte';
   import Sidebar from '$lib/Sidebar.svelte';
