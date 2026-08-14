@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { enhance } from '$app/forms';
   import ConfirmDialog from '$lib/ConfirmDialog.svelte';
   import type { PageData, ActionData } from './$types';
@@ -18,6 +19,26 @@
   // pendiente a la vez).
   let pendingDelete = $state<{ id: number; nombre: string; numFarmacias: number } | null>(null);
   let deleteFormEl: HTMLFormElement;
+
+  // Vista lista / mosaico, persistida en localStorage.
+  const VIEW_STORAGE_KEY = 'pulso:supervisores-view';
+  let viewMode = $state<'list' | 'mosaic'>('mosaic');
+  onMount(() => {
+    try {
+      const v = localStorage.getItem(VIEW_STORAGE_KEY);
+      if (v === 'list' || v === 'mosaic') viewMode = v;
+    } catch {
+      // no-op
+    }
+  });
+  function setViewMode(mode: 'list' | 'mosaic') {
+    viewMode = mode;
+    try {
+      localStorage.setItem(VIEW_STORAGE_KEY, mode);
+    } catch {
+      // no-op
+    }
+  }
 
   function abrir() {
     showModal = true;
@@ -81,6 +102,77 @@
   </button>
 {/snippet}
 
+{#snippet editForm(s: { id: number; nombre: string })}
+  <form
+    method="POST"
+    action="?/renombrar"
+    class="edit-form"
+    use:enhance={() => async ({ result, update }) => {
+      await update({ reset: false });
+      if (result.type === 'success') cancelEdit();
+    }}
+  >
+    <input type="hidden" name="supervisorId" value={s.id} />
+    <input
+      use:autofocusEdit
+      class="edit-input"
+      name="nombre"
+      bind:value={editValue}
+      autocomplete="off"
+      onkeydown={(e) => {
+        if (e.key === 'Escape') cancelEdit();
+      }}
+    />
+    <button type="submit" class="btn primary sm">Guardar</button>
+    <button type="button" class="btn ghost sm" onclick={cancelEdit}>Cancelar</button>
+  </form>
+{/snippet}
+
+{#snippet fila(s: { id: number; nombre: string; numFarmacias: number; farmacias: string[] })}
+  <li class="item" class:editing={editingId === s.id}>
+    {#if editingId === s.id}
+      {@render editForm(s)}
+    {:else}
+      <div class="info">
+        <div class="nombre-row">
+          <span class="nombre">{s.nombre}</span>
+          {@render pencil(s)}
+          {@render trash(s)}
+          <button type="button" class="btn ghost sm" onclick={() => abrirAsignar(s)}>Asignar Farmacias</button>
+        </div>
+        {#if s.numFarmacias === 0}
+          <span class="sub muted">Sin farmacias asignadas</span>
+        {:else}
+          <span class="sub">
+            {s.numFarmacias}
+            {s.numFarmacias === 1 ? 'farmacia' : 'farmacias'}: {s.farmacias.join(' · ')}
+          </span>
+        {/if}
+      </div>
+    {/if}
+  </li>
+{/snippet}
+
+{#snippet tile(s: { id: number; nombre: string; numFarmacias: number; farmacias: string[] })}
+  <li class="tile" class:editing={editingId === s.id}>
+    {#if editingId === s.id}
+      {@render editForm(s)}
+    {:else}
+      <span class="tile-nombre">{s.nombre}</span>
+      {#if s.numFarmacias === 0}
+        <span class="tile-sub muted">Sin farmacias asignadas</span>
+      {:else}
+        <span class="tile-sub" title={s.farmacias.join(' · ')}>
+          {s.numFarmacias} {s.numFarmacias === 1 ? 'farmacia' : 'farmacias'}: {s.farmacias.join(' · ')}
+        </span>
+      {/if}
+      {@render pencil(s)}
+      {@render trash(s)}
+      <button type="button" class="btn ghost sm tile-asignar" onclick={() => abrirAsignar(s)}>Asignar Farmacias</button>
+    {/if}
+  </li>
+{/snippet}
+
 <section class="wrap">
   <header class="head">
     <h1>Supervisores</h1>
@@ -93,54 +185,48 @@
   {#if data.supervisores.length === 0}
     <p class="vacio">Aún no hay supervisores. Crea el primero con “Supervisor Nuevo”.</p>
   {:else}
-    <ul class="lista">
-      {#each data.supervisores as s (s.id)}
-        <li class="item" class:editing={editingId === s.id}>
-          {#if editingId === s.id}
-            <form
-              method="POST"
-              action="?/renombrar"
-              class="edit-form"
-              use:enhance={() => async ({ result, update }) => {
-                await update({ reset: false });
-                if (result.type === 'success') cancelEdit();
-              }}
-            >
-              <input type="hidden" name="supervisorId" value={s.id} />
-              <input
-                use:autofocusEdit
-                class="edit-input"
-                name="nombre"
-                bind:value={editValue}
-                autocomplete="off"
-                onkeydown={(e) => {
-                  if (e.key === 'Escape') cancelEdit();
-                }}
-              />
-              <button type="submit" class="btn primary sm">Guardar</button>
-              <button type="button" class="btn ghost sm" onclick={cancelEdit}>Cancelar</button>
-            </form>
-          {:else}
-            <div class="info">
-              <div class="nombre-row">
-                <span class="nombre">{s.nombre}</span>
-                {@render pencil(s)}
-                {@render trash(s)}
-                <button type="button" class="btn ghost sm" onclick={() => abrirAsignar(s)}>Asignar Farmacias</button>
-              </div>
-              {#if s.numFarmacias === 0}
-                <span class="sub muted">Sin farmacias asignadas</span>
-              {:else}
-                <span class="sub">
-                  {s.numFarmacias}
-                  {s.numFarmacias === 1 ? 'farmacia' : 'farmacias'}: {s.farmacias.join(' · ')}
-                </span>
-              {/if}
-            </div>
-          {/if}
-        </li>
-      {/each}
-    </ul>
+    <div class="toolbar">
+      <div class="view-toggle" role="radiogroup" aria-label="Vista">
+        <button
+          type="button"
+          class="view-btn"
+          class:active={viewMode === 'list'}
+          onclick={() => setViewMode('list')}
+          aria-pressed={viewMode === 'list'}
+          aria-label="Vista de lista"
+          title="Vista de lista"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+            <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="view-btn"
+          class:active={viewMode === 'mosaic'}
+          onclick={() => setViewMode('mosaic')}
+          aria-pressed={viewMode === 'mosaic'}
+          aria-label="Vista de mosaico"
+          title="Vista de mosaico"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    {#if viewMode === 'mosaic'}
+      <ul class="mosaic">
+        {#each data.supervisores as s (s.id)}{@render tile(s)}{/each}
+      </ul>
+    {:else}
+      <ul class="lista">
+        {#each data.supervisores as s (s.id)}{@render fila(s)}{/each}
+      </ul>
+    {/if}
   {/if}
   {#if form?.error}<p class="err" role="alert">{form.error}</p>{/if}
 </section>
@@ -306,6 +392,38 @@
   .btn-nuevo:hover {
     background: #1d4ed8;
   }
+  /* Toggle lista / mosaico */
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .view-toggle {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.6rem;
+    background: transparent;
+    border: none;
+    color: rgba(30, 41, 59, 0.5);
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+  }
+  .view-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: rgba(30, 41, 59, 0.9);
+  }
+  .view-btn.active {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.12);
+  }
+
   .lista {
     list-style: none;
     margin: 0;
@@ -370,6 +488,84 @@
     font-style: italic;
     color: rgba(30, 41, 59, 0.45);
   }
+
+  /* Vista mosaico */
+  .mosaic {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+    gap: 0.85rem;
+  }
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.35rem;
+    padding: 1.6rem 0.9rem 1rem;
+    min-height: 8rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+  .tile:hover {
+    background: rgba(255, 255, 255, 0.8);
+  }
+  .tile.editing {
+    border-color: rgba(37, 99, 235, 0.45);
+    background: rgba(255, 255, 255, 0.85);
+  }
+  .tile-nombre {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 0.92rem;
+    line-height: 1.3;
+    max-width: 100%;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .tile-sub {
+    font-size: 0.76rem;
+    color: rgba(30, 41, 59, 0.6);
+    max-width: 100%;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .tile-sub.muted {
+    font-style: italic;
+    color: rgba(30, 41, 59, 0.45);
+  }
+  .tile .icon-btn.edit {
+    position: absolute;
+    top: 0.4rem;
+    right: 2.4rem;
+  }
+  .tile .icon-btn.delete {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+  }
+  .tile .edit-form {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tile-asignar {
+    width: 100%;
+    margin-top: 0.1rem;
+  }
+
   .edit-form {
     display: flex;
     align-items: center;
