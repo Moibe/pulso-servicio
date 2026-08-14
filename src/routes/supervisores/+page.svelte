@@ -128,6 +128,7 @@
                 <span class="nombre">{s.nombre}</span>
                 {@render pencil(s)}
                 {@render trash(s)}
+                <button type="button" class="btn ghost sm" onclick={() => abrirAsignar(s)}>Asignar Farmacias</button>
               </div>
               {#if s.numFarmacias === 0}
                 <span class="sub muted">Sin farmacias asignadas</span>
@@ -138,7 +139,6 @@
                 </span>
               {/if}
             </div>
-            <button type="button" class="btn ghost sm" onclick={() => abrirAsignar(s)}>Asignar Farmacias</button>
           {/if}
         </li>
       {/each}
@@ -306,8 +306,12 @@
   .nombre-row {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.4rem;
     min-width: 0;
+    flex-wrap: wrap;
+  }
+  .nombre-row .btn {
+    flex-shrink: 0;
   }
   .nombre {
     flex: 1;
