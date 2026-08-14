@@ -456,7 +456,7 @@
     /* El padding de arriba deja libre la franja de los iconos absolutos
        (top 0.4rem + 1.75rem de alto = 2.15rem) para que el nombre no choque. */
     padding: 2.6rem 0.9rem 1rem;
-    min-height: 8.5rem;
+    min-height: 7rem;
     text-align: center;
     background: rgba(255, 255, 255, 0.55);
     border: 1px solid rgba(0, 0, 0, 0.08);
@@ -475,6 +475,10 @@
     font-weight: 600;
     font-size: 0.92rem;
     line-height: 1.3;
+    /* Reserva siempre el alto de dos líneas (el máximo que permite el clamp):
+       así los nombres de una sola línea no suben el resto del contenido y
+       todas las tarjetas quedan alineadas entre sí. */
+    min-height: 2.6em;
     max-width: 100%;
     overflow: hidden;
     display: -webkit-box;
@@ -513,7 +517,10 @@
   }
   .tile-mover {
     width: 100%;
-    margin-top: 0.1rem;
+    /* Pegado al fondo: las tiles de una fila miden lo mismo (grid), así que
+       el select queda a la misma altura en todas aunque el texto de arriba
+       ocupe distinto número de líneas. */
+    margin-top: auto;
   }
   .tile-mover select {
     width: 100%;
