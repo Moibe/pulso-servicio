@@ -455,12 +455,14 @@
     color: rgba(30, 41, 59, 0.5);
     font-size: 0.75rem;
   }
-  .tile .icon-btn.edit {
+  /* Orden visual (izq→der): ajustes, lápiz, bote — el bote pegado al borde
+     derecho, justo después del lápiz. */
+  .tile .icon-btn.settings {
     position: absolute;
     top: 0.4rem;
-    right: 0.4rem;
+    right: 4.4rem;
   }
-  .tile .icon-btn.settings {
+  .tile .icon-btn.edit {
     position: absolute;
     top: 0.4rem;
     right: 2.4rem;
@@ -468,7 +470,7 @@
   .tile .icon-btn.delete {
     position: absolute;
     top: 0.4rem;
-    right: 4.4rem;
+    right: 0.4rem;
   }
   .tile .edit-form {
     width: 100%;
