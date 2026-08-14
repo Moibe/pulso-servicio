@@ -43,8 +43,7 @@
     <button type="button" class="btn-nuevo" onclick={abrir}>+ Supervisor Nuevo</button>
   </header>
   <p class="hint">
-    Personal que supervisa farmacias. No son cuentas de acceso: para eso están los
-    <a href="/users">usuarios</a>. Un supervisor puede supervisar varias farmacias.
+    Personal que supervisa farmacias. Un supervisor puede supervisar varias farmacias.
   </p>
 
   {#if data.supervisores.length === 0}
@@ -166,9 +165,6 @@
     color: rgba(30, 41, 59, 0.6);
     font-size: 0.85rem;
     margin: 0;
-  }
-  .hint a {
-    color: #2563eb;
   }
   .vacio {
     color: rgba(30, 41, 59, 0.65);
