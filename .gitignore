@@ -17,8 +17,8 @@ local.db
 local.db-shm
 local.db-wal
 
-# Archivos subidos (fotos de productos, etc.) — persisten en disco, no en git.
-# Anclado a la raíz (/uploads) para no atrapar también src/routes/uploads/.
+# Restos de la carpeta de imágenes del catálogo que se retiró (ya nada la escribe;
+# en el droplet puede quedar con fotos viejas hasta que se borre a mano).
 /uploads
 
 # Env

@@ -101,14 +101,16 @@
         class="btn danger"
         type="submit"
         onclick={(e) => {
-          if (!confirm(`¿Borrar "${farmacia.nombre}"? Se van también sus menús y productos. Es permanente.`))
+          if (!confirm(`¿Borrar "${farmacia.nombre}"? Es permanente. Sus empleados no se borran: quedan sin asignar.`))
             e.preventDefault();
         }}
       >
         Borrar farmacia
       </button>
     </form>
-    <p class="dz-hint">Permanente: se lleva en cascada todos sus menús y productos.</p>
+    <p class="dz-hint">
+      Permanente. Sus empleados no se borran: quedan sin asignar y puedes moverlos a otra farmacia.
+    </p>
   </div>
 </div>
 

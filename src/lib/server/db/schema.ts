@@ -1,9 +1,11 @@
-import { sqliteTable, integer, text, real, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, integer, text, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 
-// Jerarquía del dominio (uno-a-muchos en cascada):
-//   farmacia ──< menú ──< producto
-// Borrar un padre arrastra a todos sus hijos (onDelete: 'cascade').
+// Dominio: la farmacia y su gente.
+//   farmacia ──< empleados      (cada empleado en UNA farmacia a la vez)
+//   farmacia ──> supervisor     (1 supervisor, que puede llevar varias farmacias)
+// Supervisores y empleados son PERSONAL: no entran al sistema. Quien entra son
+// los `usuarios`.
 //
 // Auth (basado en el patrón de shape_up): usuarios con sesión. Una farmacia no tiene
 // dueño en su propia columna — su visibilidad y quién la administra vive en
@@ -50,7 +52,7 @@ export const supervisores = sqliteTable('supervisores', {
 	creadoEn: creadoEn()
 });
 
-// 1 farmacia tiene varios menús. Sin dueño: la visibilidad la da farmacia_members.
+// La farmacia. Sin dueño: la visibilidad la da farmacia_members.
 export const farmacias = sqliteTable(
 	'farmacias',
 	{
@@ -99,59 +101,6 @@ export const farmaciaMembers = sqliteTable(
 	(t) => [uniqueIndex('farmacia_members_unique').on(t.farmaciaId, t.usuarioId)]
 );
 
-// 1 menú pertenece a una farmacia y tiene varios productos.
-export const menus = sqliteTable(
-	'menus',
-	{
-		id: integer('id').primaryKey({ autoIncrement: true }),
-		farmaciaId: integer('farmacia_id')
-			.notNull()
-			.references(() => farmacias.id, { onDelete: 'cascade' }),
-		nombre: text('nombre').notNull(),
-		// Para ordenar los menús dentro de la farmacia.
-		orden: integer('orden').notNull().default(0),
-		activo: integer('activo', { mode: 'boolean' }).notNull().default(true),
-		creadoEn: creadoEn()
-	},
-	(t) => [index('menus_farmacia_idx').on(t.farmaciaId)]
-);
-
-// 1 producto pertenece a un menú.
-export const productos = sqliteTable(
-	'productos',
-	{
-		id: integer('id').primaryKey({ autoIncrement: true }),
-		menuId: integer('menu_id')
-			.notNull()
-			.references(() => menus.id, { onDelete: 'cascade' }),
-		nombre: text('nombre').notNull(),
-		descripcion: text('descripcion'),
-		precio: real('precio'),
-		// Foto principal: URL/ruta. Local hoy (/uploads/…), CDN a futuro (mismo campo).
-		fotoPrincipal: text('foto_principal'),
-		// Para ordenar los productos dentro del menú.
-		orden: integer('orden').notNull().default(0),
-		disponible: integer('disponible', { mode: 'boolean' }).notNull().default(true),
-		creadoEn: creadoEn()
-	},
-	(t) => [index('productos_menu_idx').on(t.menuId)]
-);
-
-// Fotos adicionales de un producto (además de la principal). Cada una es una
-// URL/ruta igual que fotoPrincipal (local hoy, CDN a futuro).
-export const productoFotos = sqliteTable(
-	'producto_fotos',
-	{
-		id: integer('id').primaryKey({ autoIncrement: true }),
-		productoId: integer('producto_id')
-			.notNull()
-			.references(() => productos.id, { onDelete: 'cascade' }),
-		url: text('url').notNull(),
-		orden: integer('orden').notNull().default(0)
-	},
-	(t) => [index('producto_fotos_producto_idx').on(t.productoId)]
-);
-
 // Relaciones para la API de consultas de drizzle (db.query.*.findMany({ with: {...} })).
 export const usuariosRelations = relations(usuarios, ({ many }) => ({
 	sessions: many(sessions),
@@ -167,7 +116,6 @@ export const supervisoresRelations = relations(supervisores, ({ many }) => ({
 }));
 
 export const farmaciasRelations = relations(farmacias, ({ one, many }) => ({
-	menus: many(menus),
 	members: many(farmaciaMembers),
 	supervisor: one(supervisores, {
 		fields: [farmacias.supervisorId],
@@ -185,20 +133,6 @@ export const farmaciaMembersRelations = relations(farmaciaMembers, ({ one }) => 
 	usuario: one(usuarios, { fields: [farmaciaMembers.usuarioId], references: [usuarios.id] })
 }));
 
-export const menusRelations = relations(menus, ({ one, many }) => ({
-	farmacia: one(farmacias, { fields: [menus.farmaciaId], references: [farmacias.id] }),
-	productos: many(productos)
-}));
-
-export const productosRelations = relations(productos, ({ one, many }) => ({
-	menu: one(menus, { fields: [productos.menuId], references: [menus.id] }),
-	fotos: many(productoFotos)
-}));
-
-export const productoFotosRelations = relations(productoFotos, ({ one }) => ({
-	producto: one(productos, { fields: [productoFotos.productoId], references: [productos.id] })
-}));
-
 // Tipos inferidos — úsalos en load functions y actions en vez de re-tipar a mano.
 export type Usuario = typeof usuarios.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
@@ -206,6 +140,3 @@ export type Farmacia = typeof farmacias.$inferSelect;
 export type FarmaciaMember = typeof farmaciaMembers.$inferSelect;
 export type Supervisor = typeof supervisores.$inferSelect;
 export type Empleado = typeof empleados.$inferSelect;
-export type Menu = typeof menus.$inferSelect;
-export type Producto = typeof productos.$inferSelect;
-export type ProductoFoto = typeof productoFotos.$inferSelect;

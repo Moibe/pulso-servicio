@@ -14,22 +14,14 @@
     isAdmin?: boolean;
   } = $props();
 
-  // Edita estos items por las secciones reales de tu app.
-  // level = profundidad jerárquica (cada uno es subconjunto del anterior: Farmacias > Menus > Productos),
-  // se usa para indentar el ítem y comunicar visualmente el anidamiento.
-  const items = [
-    { href: '/', label: 'Farmacias', level: 0 },
-    { href: '/menus', label: 'Menus', level: 1 },
-    { href: '/productos', label: 'Productos', level: 2 }
-  ];
+  // level = profundidad jerárquica; se usa para indentar y comunicar anidamiento.
+  // Hoy solo hay un nivel: la navegación de contenido es la lista de farmacias.
+  const items = [{ href: '/', label: 'Farmacias', level: 0 }];
 
-  // El resaltado sigue el TIPO de contenido mostrado, no el prefijo de la URL:
-  // /farmacias/[id] muestra menús → resalta "Menus"; /menus/[id] muestra productos → resalta "Productos".
+  // El detalle de una farmacia (/farmacias/[id]) sigue siendo "Farmacias".
   function isActive(href: string) {
     const path = page.url.pathname;
-    if (href === '/') return path === '/';
-    if (href === '/menus') return path === '/menus' || path.startsWith('/farmacias/');
-    if (href === '/productos') return path === '/productos' || path.startsWith('/menus/');
+    if (href === '/') return path === '/' || path.startsWith('/farmacias/');
     return path === href;
   }
 

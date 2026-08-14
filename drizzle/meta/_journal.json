@@ -50,6 +50,13 @@
       "when": 1786661408231,
       "tag": "0006_supervisores_y_empleados",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1786670271227,
+      "tag": "0007_quitar_menus_y_productos",
+      "breakpoints": true
     }
   ]
 }

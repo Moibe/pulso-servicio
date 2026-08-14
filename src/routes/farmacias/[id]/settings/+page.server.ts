@@ -102,7 +102,8 @@ export const actions: Actions = {
 		return { renamed: true };
 	},
 
-	// Permanente: se lleva en cascada sus menús y productos.
+	// Permanente. Sus empleados NO se borran: quedan sin asignar (ON DELETE SET
+	// NULL), porque son personas y pueden moverse a otra farmacia.
 	delete: async ({ params, locals }) => {
 		const id = farmaciaId(params);
 		requireManageFarmacia(locals.user, id);
