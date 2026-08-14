@@ -37,7 +37,7 @@
       <p class="muted">
         {data.isAdmin
           ? 'Todavía no hay farmacias.'
-          : 'Todavía no eres miembro de ninguna farmacia. Pide a un administrador que te agregue.'}
+          : 'Todavía no eres miembro de ninguna farmacia. Puedes crear la tuya desde Farmacias, o pedir a un administrador que te agregue a una.'}
       </p>
     {:else}
       <p>

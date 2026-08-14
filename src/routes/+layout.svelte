@@ -162,10 +162,8 @@
     }
   }
 
-  /* Trunca nombre/contexto largos en vez de desbordar el renglón. */
-  :global(.item-nombre),
-  :global(.item-ctx),
-  :global(.tile-ctx) {
+  /* Trunca nombres largos en vez de desbordar el renglón. */
+  :global(.item-nombre) {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

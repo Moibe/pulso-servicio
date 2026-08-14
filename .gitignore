@@ -17,10 +17,6 @@ local.db
 local.db-shm
 local.db-wal
 
-# Restos de la carpeta de imágenes del catálogo que se retiró (ya nada la escribe;
-# en el droplet puede quedar con fotos viejas hasta que se borre a mano).
-/uploads
-
 # Env
 .env
 .env.*

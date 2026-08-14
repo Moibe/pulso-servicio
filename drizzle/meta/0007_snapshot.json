@@ -4,8 +4,8 @@
   "version": "6",
   "dialect": "sqlite",
   "tables": {
-    "menus": {
-      "name": "menus",
+    "empleados": {
+      "name": "empleados",
       "columns": {
         "id": {
           "name": "id",
@@ -14,13 +14,6 @@
           "notNull": true,
           "autoincrement": true
         },
-        "negocio_id": {
-          "name": "negocio_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "nombre": {
           "name": "nombre",
           "type": "text",
@@ -28,21 +21,12 @@
           "notNull": true,
           "autoincrement": false
         },
-        "orden": {
-          "name": "orden",
+        "farmacia_id": {
+          "name": "farmacia_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "activo": {
-          "name": "activo",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
+          "notNull": false,
+          "autoincrement": false
         },
         "creado_en": {
           "name": "creado_en",
@@ -53,35 +37,35 @@
         }
       },
       "indexes": {
-        "menus_negocio_idx": {
-          "name": "menus_negocio_idx",
+        "empleados_farmacia_idx": {
+          "name": "empleados_farmacia_idx",
           "columns": [
-            "negocio_id"
+            "farmacia_id"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "menus_negocio_id_negocios_id_fk": {
-          "name": "menus_negocio_id_negocios_id_fk",
-          "tableFrom": "menus",
+        "empleados_farmacia_id_farmacias_id_fk": {
+          "name": "empleados_farmacia_id_farmacias_id_fk",
+          "tableFrom": "empleados",
+          "tableTo": "farmacias",
           "columnsFrom": [
-            "negocio_id"
+            "farmacia_id"
           ],
-          "tableTo": "negocios",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "negocio_members": {
-      "name": "negocio_members",
+    "farmacia_members": {
+      "name": "farmacia_members",
       "columns": {
         "id": {
           "name": "id",
@@ -90,8 +74,8 @@
           "notNull": true,
           "autoincrement": true
         },
-        "negocio_id": {
-          "name": "negocio_id",
+        "farmacia_id": {
+          "name": "farmacia_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -114,49 +98,49 @@
         }
       },
       "indexes": {
-        "negocio_members_unique": {
-          "name": "negocio_members_unique",
+        "farmacia_members_unique": {
+          "name": "farmacia_members_unique",
           "columns": [
-            "negocio_id",
+            "farmacia_id",
             "usuario_id"
           ],
           "isUnique": true
         }
       },
       "foreignKeys": {
-        "negocio_members_negocio_id_negocios_id_fk": {
-          "name": "negocio_members_negocio_id_negocios_id_fk",
-          "tableFrom": "negocio_members",
+        "farmacia_members_farmacia_id_farmacias_id_fk": {
+          "name": "farmacia_members_farmacia_id_farmacias_id_fk",
+          "tableFrom": "farmacia_members",
+          "tableTo": "farmacias",
           "columnsFrom": [
-            "negocio_id"
+            "farmacia_id"
           ],
-          "tableTo": "negocios",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
-        "negocio_members_usuario_id_usuarios_id_fk": {
-          "name": "negocio_members_usuario_id_usuarios_id_fk",
-          "tableFrom": "negocio_members",
+        "farmacia_members_usuario_id_usuarios_id_fk": {
+          "name": "farmacia_members_usuario_id_usuarios_id_fk",
+          "tableFrom": "farmacia_members",
+          "tableTo": "usuarios",
           "columnsFrom": [
             "usuario_id"
           ],
-          "tableTo": "usuarios",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "negocios": {
-      "name": "negocios",
+    "farmacias": {
+      "name": "farmacias",
       "columns": {
         "id": {
           "name": "id",
@@ -179,141 +163,12 @@
           "notNull": false,
           "autoincrement": false
         },
-        "creado_en": {
-          "name": "creado_en",
+        "supervisor_id": {
+          "name": "supervisor_id",
           "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "producto_fotos": {
-      "name": "producto_fotos",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "producto_id": {
-          "name": "producto_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "url": {
-          "name": "url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "orden": {
-          "name": "orden",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        }
-      },
-      "indexes": {
-        "producto_fotos_producto_idx": {
-          "name": "producto_fotos_producto_idx",
-          "columns": [
-            "producto_id"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "producto_fotos_producto_id_productos_id_fk": {
-          "name": "producto_fotos_producto_id_productos_id_fk",
-          "tableFrom": "producto_fotos",
-          "columnsFrom": [
-            "producto_id"
-          ],
-          "tableTo": "productos",
-          "columnsTo": [
-            "id"
-          ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "productos": {
-      "name": "productos",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "menu_id": {
-          "name": "menu_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "nombre": {
-          "name": "nombre",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "descripcion": {
-          "name": "descripcion",
-          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "precio": {
-          "name": "precio",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "foto_principal": {
-          "name": "foto_principal",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "orden": {
-          "name": "orden",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "disponible": {
-          "name": "disponible",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
         },
         "creado_en": {
           "name": "creado_en",
@@ -324,27 +179,27 @@
         }
       },
       "indexes": {
-        "productos_menu_idx": {
-          "name": "productos_menu_idx",
+        "farmacias_supervisor_idx": {
+          "name": "farmacias_supervisor_idx",
           "columns": [
-            "menu_id"
+            "supervisor_id"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "productos_menu_id_menus_id_fk": {
-          "name": "productos_menu_id_menus_id_fk",
-          "tableFrom": "productos",
+        "farmacias_supervisor_id_supervisores_id_fk": {
+          "name": "farmacias_supervisor_id_supervisores_id_fk",
+          "tableFrom": "farmacias",
+          "tableTo": "supervisores",
           "columnsFrom": [
-            "menu_id"
+            "supervisor_id"
           ],
-          "tableTo": "menus",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -381,17 +236,48 @@
         "sessions_usuario_id_usuarios_id_fk": {
           "name": "sessions_usuario_id_usuarios_id_fk",
           "tableFrom": "sessions",
+          "tableTo": "usuarios",
           "columnsFrom": [
             "usuario_id"
           ],
-          "tableTo": "usuarios",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "supervisores": {
+      "name": "supervisores",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
@@ -454,9 +340,9 @@
   "views": {},
   "enums": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
+    "tables": {},
+    "columns": {}
   },
   "internal": {
     "indexes": {}

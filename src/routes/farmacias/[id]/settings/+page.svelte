@@ -24,9 +24,13 @@
 
   <div class="members">
     <h2>Personal</h2>
+    <!-- Los enlaces a /supervisores y /empleados solo para admin: esas rutas
+         redirigen al home a quien no lo sea, así que a un owner no-admin le
+         rebotarían. -->
     <p class="hint">
       Supervisor y empleados de esta farmacia. Es personal, no cuentas de acceso; lo da de alta el
-      administrador desde <a href="/supervisores">Supervisores</a> y <a href="/empleados">Empleados</a>.
+      administrador{#if data.isAdmin}
+        desde <a href="/supervisores">Supervisores</a> y <a href="/empleados">Empleados</a>{/if}.
     </p>
 
     {#if data.isAdmin}

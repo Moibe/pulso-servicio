@@ -4,10 +4,9 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import Database from 'better-sqlite3';
 
-// ⚠️ PELIGROSO: sube tu BD + uploads LOCALES a PRODUCCIÓN, sobrescribiéndola.
-// Antes de pisar nada, hace respaldo en el droplet (backups/prod-<ts>.db y
-// backups/prod-uploads-<ts>.tgz) para poder revertir. Requiere la bandera
-// --confirmar y acceso SSH al droplet.
+// ⚠️ PELIGROSO: sube tu BD LOCAL a PRODUCCIÓN, sobrescribiéndola. Antes de pisar
+// nada, hace respaldo en el droplet (backups/prod-<ts>.db) para poder revertir.
+// Requiere la bandera --confirmar y acceso SSH al droplet.
 //
 // Uso:  npm run db:espejo-push -- --confirmar
 
@@ -40,7 +39,6 @@ const scp = (from, to) => execFileSync('scp', [from, to], { stdio: 'inherit' });
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const tmpDb = path.join(os.tmpdir(), `espejo-local-${stamp}.db`);
-const tmpUploads = path.join(os.tmpdir(), `espejo-uploads-${stamp}.tgz`);
 
 // 1) Snapshot consistente de tu BD local (VACUUM INTO, aunque el dev esté corriendo).
 try { fs.unlinkSync(tmpDb); } catch {}
@@ -49,36 +47,25 @@ db.exec(`VACUUM INTO '${tmpDb.replace(/\\/g, '/')}'`);
 db.close();
 console.log('Snapshot local listo.');
 
-// 2) Tar de tus uploads locales (asegura que exista la carpeta para un tar válido).
-fs.mkdirSync('./uploads', { recursive: true });
-execFileSync('tar', ['-czf', tmpUploads, 'uploads'], { stdio: 'inherit' });
-
-// 3) Respaldo de PROD antes de pisar (BD + uploads) — reversible.
+// 2) Respaldo de PROD antes de pisar — reversible.
 console.log('Respaldando prod antes de sobrescribir…');
 ssh(
 	`cd ${DIR} && mkdir -p backups && ` +
-		`{ [ -f local.db ] && cp local.db backups/prod-${stamp}.db && echo 'db respaldada'; } || echo 'prod no tenía db'; ` +
-		`{ [ -d uploads ] && tar -czf backups/prod-uploads-${stamp}.tgz uploads && echo 'uploads respaldados'; } || echo 'prod no tenía uploads'`
+		`{ [ -f local.db ] && cp local.db backups/prod-${stamp}.db && echo 'db respaldada'; } || echo 'prod no tenía db'`
 );
 
-// 4) Subir la BD y reemplazar (limpiando WAL/SHM viejos de prod).
+// 3) Subir la BD y reemplazar (limpiando WAL/SHM viejos de prod).
 scp(tmpDb, `${HOST}:${DIR}/local.db`);
 ssh(`cd ${DIR} && rm -f local.db-wal local.db-shm`);
 console.log('BD de prod reemplazada.');
 
-// 5) Subir y reemplazar uploads (espejo real: prod queda igual a tu local).
-scp(tmpUploads, `${HOST}:/tmp/espejo-uploads.tgz`);
-ssh(`cd ${DIR} && rm -rf uploads && tar -xzf /tmp/espejo-uploads.tgz && rm -f /tmp/espejo-uploads.tgz`);
-console.log('uploads de prod reemplazados.');
-
-// 6) Reiniciar pm2 para que la app reabra la BD nueva.
+// 4) Reiniciar pm2 para que la app reabra la BD nueva.
 ssh(`export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" && nvm use node >/dev/null && pm2 restart pulso-servicio`);
 
-// 7) Limpieza local.
+// 5) Limpieza local.
 try { fs.unlinkSync(tmpDb); } catch {}
-try { fs.unlinkSync(tmpUploads); } catch {}
 
 console.log(
-	`\nEspejo local → prod completo. Respaldo en el droplet: ${DIR}/backups/prod-${stamp}.db ` +
-		`(+ prod-uploads-${stamp}.tgz). Para revertir: copia ese .db de vuelta a ${DIR}/local.db y pm2 restart pulso-servicio.`
+	`\nEspejo local → prod completo. Respaldo en el droplet: ${DIR}/backups/prod-${stamp}.db. ` +
+		`Para revertir: copia ese .db de vuelta a ${DIR}/local.db y pm2 restart pulso-servicio.`
 );

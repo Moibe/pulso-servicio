@@ -41,7 +41,7 @@
   }
 
   // Vista lista / mosaico, persistida en localStorage.
-  const VIEW_STORAGE_KEY = 'menu:farmacias-view';
+  const VIEW_STORAGE_KEY = 'pulso:farmacias-view';
   let viewMode = $state<'list' | 'mosaic'>('mosaic');
   onMount(() => {
     try {

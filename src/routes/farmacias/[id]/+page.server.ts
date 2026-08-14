@@ -3,12 +3,7 @@ import { and, asc, eq, isNull } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { supervisores, empleados, farmacias } from '$lib/server/db/schema';
 import { resolveFarmacia } from '$lib/server/farmacia-context';
-import {
-	canManageFarmacia,
-	requireAdmin,
-	requireManageFarmacia,
-	canSeeFarmacia
-} from '$lib/server/access';
+import { canManageFarmacia, requireAdmin, canSeeFarmacia } from '$lib/server/access';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
