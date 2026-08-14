@@ -257,8 +257,12 @@
     flex-shrink: 0;
   }
   .nombre {
-    flex: 1;
+    /* Sin flex-grow a propósito: si creciera, su caja llenaría el espacio libre
+       y empujaría lápiz/bote lejos del texto visible. Así quedan pegados al
+       nombre; solo se encoge (con ellipsis) si de verdad no cabe. */
+    flex: 0 1 auto;
     min-width: 0;
+    max-width: 100%;
     color: #1e293b;
     font-weight: 600;
     overflow: hidden;
