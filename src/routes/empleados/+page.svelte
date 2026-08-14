@@ -94,26 +94,26 @@
           <span class="nombre">{e.nombre}</span>
           {@render pencil(e)}
           {@render trash(e)}
+
+          <!-- Mover: al cambiar el select se envía solo (sin botón extra). -->
+          <form method="POST" action="?/mover" class="mover" use:enhance>
+            <input type="hidden" name="empleadoId" value={e.id} />
+            <label class="sr-only" for={`mover-${e.id}`}>Mover a farmacia</label>
+            <select
+              id={`mover-${e.id}`}
+              name="farmaciaId"
+              value={e.farmaciaId ?? ''}
+              onchange={(ev) => ev.currentTarget.form?.requestSubmit()}
+            >
+              <option value="">— Sin asignar —</option>
+              {#each data.farmacias as f (f.id)}
+                <option value={f.id}>{f.nombre}</option>
+              {/each}
+            </select>
+          </form>
         </div>
         <span class="sub" class:muted={!e.farmaciaNombre}>{e.farmaciaNombre ?? 'Sin asignar'}</span>
       </div>
-
-      <!-- Mover: al cambiar el select se envía solo (sin botón extra). -->
-      <form method="POST" action="?/mover" class="mover" use:enhance>
-        <input type="hidden" name="empleadoId" value={e.id} />
-        <label class="sr-only" for={`mover-${e.id}`}>Mover a farmacia</label>
-        <select
-          id={`mover-${e.id}`}
-          name="farmaciaId"
-          value={e.farmaciaId ?? ''}
-          onchange={(ev) => ev.currentTarget.form?.requestSubmit()}
-        >
-          <option value="">— Sin asignar —</option>
-          {#each data.farmacias as f (f.id)}
-            <option value={f.id}>{f.nombre}</option>
-          {/each}
-        </select>
-      </form>
     {/if}
   </li>
 {/snippet}
@@ -249,8 +249,12 @@
   .nombre-row {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.4rem;
     min-width: 0;
+    flex-wrap: wrap;
+  }
+  .nombre-row .mover {
+    flex-shrink: 0;
   }
   .nombre {
     flex: 1;
