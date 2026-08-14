@@ -505,8 +505,10 @@
     align-items: center;
     justify-content: flex-start;
     gap: 0.35rem;
-    padding: 1.6rem 0.9rem 1rem;
-    min-height: 8rem;
+    /* El padding de arriba deja libre la franja de los iconos absolutos
+       (top 0.4rem + 1.75rem de alto = 2.15rem) para que el nombre no choque. */
+    padding: 2.6rem 0.9rem 1rem;
+    min-height: 8.5rem;
     text-align: center;
     background: rgba(255, 255, 255, 0.55);
     border: 1px solid rgba(0, 0, 0, 0.08);
