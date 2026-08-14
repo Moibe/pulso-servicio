@@ -312,6 +312,9 @@
   }
   .nombre-row .btn {
     flex-shrink: 0;
+    /* A la derecha del todo: "Asignar Farmacias" es una acción aparte, no algo
+       que actúe sobre el nombre en sí como el lápiz/bote. */
+    margin-left: auto;
   }
   .nombre {
     /* Sin flex-grow a propósito: si creciera, su caja llenaría el espacio libre

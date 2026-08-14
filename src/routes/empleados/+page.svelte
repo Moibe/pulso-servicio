@@ -255,6 +255,9 @@
   }
   .nombre-row .mover {
     flex-shrink: 0;
+    /* A la derecha del todo: es una acción aparte (mover de farmacia), no algo
+       que actúe sobre el nombre en sí como el lápiz/bote. */
+    margin-left: auto;
   }
   .nombre {
     /* Sin flex-grow a propósito: si creciera, su caja llenaría el espacio libre
