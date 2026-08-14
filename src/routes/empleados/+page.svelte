@@ -34,6 +34,34 @@
   }}
 />
 
+{#snippet pencil(e: { id: number; nombre: string })}
+  <button
+    type="button"
+    class="icon-btn edit"
+    onclick={() => startEdit(e)}
+    aria-label="Editar nombre"
+    title="Editar nombre"
+  >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+  </button>
+{/snippet}
+
+{#snippet trash(e: { id: number; nombre: string })}
+  <form
+    method="POST"
+    action="?/borrar"
+    use:enhance
+    onsubmit={(ev) => {
+      if (!confirm(`¿Borrar a "${e.nombre}"? Es permanente.`)) ev.preventDefault();
+    }}
+  >
+    <input type="hidden" name="empleadoId" value={e.id} />
+    <button type="submit" class="icon-btn delete" aria-label="Borrar" title="Borrar">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
+    </button>
+  </form>
+{/snippet}
+
 {#snippet fila(e: { id: number; nombre: string; farmaciaId: number | null; farmaciaNombre: string | null })}
   <li class="item">
     {#if editingId === e.id}
@@ -62,7 +90,11 @@
       </form>
     {:else}
       <div class="info">
-        <span class="nombre">{e.nombre}</span>
+        <div class="nombre-row">
+          <span class="nombre">{e.nombre}</span>
+          {@render pencil(e)}
+          {@render trash(e)}
+        </div>
         <span class="sub" class:muted={!e.farmaciaNombre}>{e.farmaciaNombre ?? 'Sin asignar'}</span>
       </div>
 
@@ -81,19 +113,6 @@
             <option value={f.id}>{f.nombre}</option>
           {/each}
         </select>
-      </form>
-
-      <button type="button" class="btn ghost sm" onclick={() => startEdit(e)}>Renombrar</button>
-      <form
-        method="POST"
-        action="?/borrar"
-        use:enhance
-        onsubmit={(ev) => {
-          if (!confirm(`¿Borrar a "${e.nombre}"? Es permanente.`)) ev.preventDefault();
-        }}
-      >
-        <input type="hidden" name="empleadoId" value={e.id} />
-        <button type="submit" class="btn danger sm">Borrar</button>
       </form>
     {/if}
   </li>
@@ -227,7 +246,15 @@
     flex-direction: column;
     gap: 0.1rem;
   }
+  .nombre-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+  }
   .nombre {
+    flex: 1;
+    min-width: 0;
     color: #1e293b;
     font-weight: 600;
     overflow: hidden;
@@ -299,14 +326,40 @@
   .btn.ghost:hover {
     border-color: rgba(0, 0, 0, 0.3);
   }
-  .btn.danger {
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    padding: 0;
     background: transparent;
-    border-color: rgba(220, 38, 38, 0.4);
-    color: #dc2626;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: rgba(30, 41, 59, 0.5);
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
   }
-  .btn.danger:hover {
-    background: rgba(220, 38, 38, 0.08);
-    border-color: #dc2626;
+  .icon-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+  /* Lápiz de editar: azul para que sea visible como acción. */
+  .icon-btn.edit {
+    color: #2563eb;
+    border-color: rgba(37, 99, 235, 0.25);
+  }
+  .icon-btn.edit:hover {
+    background: rgba(37, 99, 235, 0.12);
+    border-color: rgba(37, 99, 235, 0.45);
+  }
+  .icon-btn.delete {
+    color: #dc2626;
+    border-color: rgba(220, 38, 38, 0.25);
+  }
+  .icon-btn.delete:hover {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: rgba(220, 38, 38, 0.45);
   }
   .err {
     color: #dc2626;
