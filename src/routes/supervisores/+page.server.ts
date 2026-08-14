@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { asc, count, eq } from 'drizzle-orm';
+import { and, asc, eq, inArray, notInArray } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { supervisores, farmacias } from '$lib/server/db/schema';
 
@@ -9,32 +9,33 @@ import { supervisores, farmacias } from '$lib/server/db/schema';
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user?.isAdmin) throw redirect(303, '/');
 
-	// Un supervisor puede supervisar varias farmacias → se cuentan por leftJoin
-	// (leftJoin, no inner: los supervisores sin farmacias también deben salir).
-	const lista = db
-		.select({
-			id: supervisores.id,
-			nombre: supervisores.nombre,
-			creadoEn: supervisores.creadoEn,
-			numFarmacias: count(farmacias.id)
-		})
+	const listaSupervisores = db
+		.select({ id: supervisores.id, nombre: supervisores.nombre, creadoEn: supervisores.creadoEn })
 		.from(supervisores)
-		.leftJoin(farmacias, eq(farmacias.supervisorId, supervisores.id))
-		.groupBy(supervisores.id)
 		.orderBy(asc(supervisores.nombre))
 		.all();
 
-	// Para mostrar QUÉ farmacias supervisa cada uno.
-	const asignaciones = db
-		.select({ supervisorId: farmacias.supervisorId, nombre: farmacias.nombre })
+	// Todas las farmacias con su supervisor actual (o null). Sirve para mostrar
+	// qué farmacias tiene cada supervisor Y para armar el checklist de asignar
+	// (donde también hace falta saber si una farmacia YA es de alguien más).
+	const todasFarmacias = db
+		.select({ id: farmacias.id, nombre: farmacias.nombre, supervisorId: farmacias.supervisorId })
 		.from(farmacias)
 		.orderBy(asc(farmacias.nombre))
 		.all();
 
+	const nombrePorSupervisor = new Map(listaSupervisores.map((s) => [s.id, s.nombre]));
+
 	return {
-		supervisores: lista.map((s) => ({
-			...s,
-			farmacias: asignaciones.filter((a) => a.supervisorId === s.id).map((a) => a.nombre)
+		supervisores: listaSupervisores.map((s) => {
+			const propias = todasFarmacias.filter((f) => f.supervisorId === s.id);
+			return { ...s, numFarmacias: propias.length, farmacias: propias.map((f) => f.nombre) };
+		}),
+		farmacias: todasFarmacias.map((f) => ({
+			id: f.id,
+			nombre: f.nombre,
+			supervisorId: f.supervisorId,
+			supervisorNombre: f.supervisorId ? (nombrePorSupervisor.get(f.supervisorId) ?? null) : null
 		}))
 	};
 };
@@ -70,5 +71,38 @@ export const actions: Actions = {
 
 		db.delete(supervisores).where(eq(supervisores.id, id)).run();
 		return { success: true };
+	},
+
+	// Reemplaza el set de farmacias que supervisa este supervisor por el marcado
+	// en el checklist. Una farmacia solo tiene UN supervisor (farmacias.supervisor_id
+	// es una sola columna), así que marcar una que ya era de otro se la quita a
+	// ese otro (el modal se lo advierte al admin antes de enviar).
+	asignarFarmacias: async ({ request, locals }) => {
+		if (!locals.user?.isAdmin) throw redirect(303, '/');
+		const fd = await request.formData();
+		const supervisorId = Number(fd.get('supervisorId'));
+		if (!Number.isInteger(supervisorId)) return fail(400, { error: 'Supervisor inválido.' });
+		const existe = db.select({ id: supervisores.id }).from(supervisores).where(eq(supervisores.id, supervisorId)).get();
+		if (!existe) return fail(400, { error: 'Ese supervisor ya no existe.' });
+
+		const farmaciaIds = fd
+			.getAll('farmaciaId')
+			.map((v) => Number(v))
+			.filter((n) => Number.isInteger(n) && n > 0);
+
+		db.transaction((tx) => {
+			if (farmaciaIds.length > 0) {
+				tx.update(farmacias).set({ supervisorId }).where(inArray(farmacias.id, farmaciaIds)).run();
+				tx.update(farmacias)
+					.set({ supervisorId: null })
+					.where(and(eq(farmacias.supervisorId, supervisorId), notInArray(farmacias.id, farmaciaIds)))
+					.run();
+			} else {
+				// Ninguna marcada: le quita todas las que tuviera.
+				tx.update(farmacias).set({ supervisorId: null }).where(eq(farmacias.supervisorId, supervisorId)).run();
+			}
+		});
+
+		return { asignado: true };
 	}
 };

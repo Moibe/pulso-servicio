@@ -8,11 +8,23 @@
   let editingId = $state<number | null>(null);
   let editValue = $state('');
 
+  // Modal de "asignar farmacias": qué supervisor está abierto (null = ninguno)
+  // y el set de farmacias marcadas en el checklist (bind:group las mantiene).
+  let showAsignarId = $state<number | null>(null);
+  let selectedFarmaciaIds = $state<number[]>([]);
+
   function abrir() {
     showModal = true;
   }
   function cerrar() {
     showModal = false;
+  }
+  function abrirAsignar(s: { id: number }) {
+    showAsignarId = s.id;
+    selectedFarmaciaIds = data.farmacias.filter((f) => f.supervisorId === s.id).map((f) => f.id);
+  }
+  function cerrarAsignar() {
+    showAsignarId = null;
   }
   function startEdit(s: { id: number; nombre: string }) {
     editingId = s.id;
@@ -33,7 +45,9 @@
 
 <svelte:window
   onkeydown={(e) => {
-    if (e.key === 'Escape' && showModal) cerrar();
+    if (e.key !== 'Escape') return;
+    if (showModal) cerrar();
+    if (showAsignarId !== null) cerrarAsignar();
   }}
 />
 
@@ -88,6 +102,7 @@
                 </span>
               {/if}
             </div>
+            <button type="button" class="btn ghost sm" onclick={() => abrirAsignar(s)}>Asignar Farmacias</button>
             <button type="button" class="btn ghost sm" onclick={() => startEdit(s)}>Renombrar</button>
             <form
               method="POST"
@@ -139,6 +154,62 @@
           <button type="submit" class="btn primary">Ok</button>
         </div>
       </form>
+    </div>
+  </div>
+{/if}
+
+{#if showAsignarId !== null}
+  {@const sup = data.supervisores.find((s) => s.id === showAsignarId)}
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+  <div class="overlay" onclick={cerrarAsignar}>
+    <div
+      class="modal"
+      role="dialog"
+      tabindex="-1"
+      aria-modal="true"
+      aria-label={`Farmacias de ${sup?.nombre ?? ''}`}
+      onclick={(e) => e.stopPropagation()}
+    >
+      <h2>Farmacias de {sup?.nombre}</h2>
+      {#if data.farmacias.length === 0}
+        <p class="modal-nota">Todavía no hay farmacias que asignar.</p>
+        <div class="acciones">
+          <button type="button" class="btn ghost" onclick={cerrarAsignar}>Cerrar</button>
+        </div>
+      {:else}
+        <p class="modal-nota">
+          Marca las que supervisa (puede ser más de una). Si alguna ya tiene otro supervisor, al
+          marcarla se la quitas a esa persona.
+        </p>
+        <form
+          method="POST"
+          action="?/asignarFarmacias"
+          use:enhance={() => async ({ result, update }) => {
+            await update();
+            if (result.type === 'success') cerrarAsignar();
+          }}
+        >
+          <input type="hidden" name="supervisorId" value={showAsignarId} />
+          <ul class="checklist">
+            {#each data.farmacias as f (f.id)}
+              <li>
+                <label class="chk">
+                  <input type="checkbox" name="farmaciaId" value={f.id} bind:group={selectedFarmaciaIds} />
+                  <span class="chk-nombre">{f.nombre}</span>
+                  {#if f.supervisorId && f.supervisorId !== showAsignarId}
+                    <span class="chk-otro">hoy: {f.supervisorNombre}</span>
+                  {/if}
+                </label>
+              </li>
+            {/each}
+          </ul>
+          {#if form?.error}<p class="err">{form.error}</p>{/if}
+          <div class="acciones">
+            <button type="button" class="btn ghost" onclick={cerrarAsignar}>Cancelar</button>
+            <button type="submit" class="btn primary">Guardar</button>
+          </div>
+        </form>
+      {/if}
     </div>
   </div>
 {/if}
@@ -311,7 +382,7 @@
     font-size: 1.2rem;
     color: #1e293b;
   }
-  .modal input {
+  .modal input[type='text'] {
     width: 100%;
     box-sizing: border-box;
     padding: 0.7rem 0.9rem;
@@ -321,9 +392,59 @@
     border-radius: 10px;
     outline: none;
   }
-  .modal input:focus {
+  .modal input[type='text']:focus {
     border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .modal-nota {
+    margin: 0 0 0.9rem;
+    font-size: 0.85rem;
+    color: rgba(30, 41, 59, 0.6);
+  }
+  .checklist {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .chk {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .chk:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+  .chk input[type='checkbox'] {
+    width: auto;
+    flex-shrink: 0;
+    accent-color: #2563eb;
+  }
+  .chk-nombre {
+    flex: 1;
+    min-width: 0;
+    color: #1e293b;
+    font-size: 0.92rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chk-otro {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #b45309;
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 999px;
+    padding: 0.05rem 0.5rem;
+    flex-shrink: 0;
   }
   .acciones {
     display: flex;
