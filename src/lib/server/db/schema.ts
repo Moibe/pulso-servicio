@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, integer, real, text, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 
 // Dominio: la farmacia y su gente.
@@ -65,6 +65,10 @@ export const farmacias = sqliteTable(
 		supervisorId: integer('supervisor_id').references(() => supervisores.id, {
 			onDelete: 'set null'
 		}),
+		// Ubicación en el mapa (WGS84, lo que usan Leaflet/OSM/Google Maps). Las
+		// dos van juntas: o hay ubicación (ambas con valor) o no la hay (ambas null).
+		lat: real('lat'),
+		lng: real('lng'),
 		creadoEn: creadoEn()
 	},
 	(t) => [index('farmacias_supervisor_idx').on(t.supervisorId)]

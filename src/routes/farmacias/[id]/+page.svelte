@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import MapaUbicacion from '$lib/MapaUbicacion.svelte';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -109,6 +110,31 @@
       {/if}
     </div>
   </div>
+
+  <!-- Ubicación: solo si la tiene puesta. Si no, al que puede administrarla se
+       le dice dónde ponerla; a los demás no se les enseña un hueco vacío. -->
+  {#if data.farmacia.lat != null && data.farmacia.lng != null}
+    <div class="card">
+      <span class="card-tit">Ubicación</span>
+      <MapaUbicacion lat={data.farmacia.lat} lng={data.farmacia.lng} />
+      <a
+        class="ver-en-osm"
+        href={`https://www.openstreetmap.org/?mlat=${data.farmacia.lat}&mlon=${data.farmacia.lng}#map=17/${data.farmacia.lat}/${data.farmacia.lng}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Abrir en OpenStreetMap ↗
+      </a>
+    </div>
+  {:else if data.canManage}
+    <div class="card">
+      <span class="card-tit">Ubicación</span>
+      <p class="card-vacio">
+        Sin ubicación en el mapa. Ponla desde
+        <a href={`/farmacias/${data.farmacia.id}/settings`}>Ajustes</a>.
+      </p>
+    </div>
+  {/if}
 </section>
 
 {#if showSupModal}
@@ -306,6 +332,19 @@
     margin: 0;
     font-size: 0.88rem;
     color: rgba(30, 41, 59, 0.5);
+  }
+  .card-vacio a {
+    color: #2563eb;
+  }
+  .ver-en-osm {
+    align-self: flex-start;
+    font-size: 0.78rem;
+    color: rgba(30, 41, 59, 0.55);
+    text-decoration: none;
+  }
+  .ver-en-osm:hover {
+    color: #2563eb;
+    text-decoration: underline;
   }
   .personas {
     list-style: none;

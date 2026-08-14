@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { enhance } from '$app/forms';
   import ConfirmDialog from '$lib/ConfirmDialog.svelte';
+  import MapaUbicacion from '$lib/MapaUbicacion.svelte';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -8,6 +10,24 @@
 
   let showDeleteConfirm = $state(false);
   let deleteFormEl: HTMLFormElement;
+
+  // Ubicación "en borrador": lo que el usuario va marcando en el mapa antes de
+  // guardar. La fuente de verdad sigue siendo el servidor; cuando responde (y
+  // `data` se revalida) el borrador se vuelve a igualar a lo guardado.
+  // untrack: leer `data` aquí es a propósito (es solo el valor inicial); quien
+  // lo mantiene al día es el $effect de abajo.
+  let borrador = $state<{ lat: number | null; lng: number | null }>(
+    untrack(() => ({ lat: data.farmacia.lat, lng: data.farmacia.lng }))
+  );
+  $effect(() => {
+    const { lat, lng } = data.farmacia;
+    borrador = { lat, lng };
+  });
+
+  const sinGuardar = $derived(
+    borrador.lat !== farmacia.lat || borrador.lng !== farmacia.lng
+  );
+  const fmtCoord = (n: number) => n.toFixed(6);
 </script>
 
 <div class="wrap">
@@ -27,14 +47,58 @@
   </form>
 
   <div class="members">
+    <h2>Ubicación</h2>
+    <p class="hint">
+      Haz clic en el mapa para poner el pin donde está la farmacia; puedes arrastrarlo para
+      ajustarlo. Acércate con los botones + / − del mapa.
+    </p>
+
+    <MapaUbicacion
+      lat={borrador.lat}
+      lng={borrador.lng}
+      editable
+      onPick={(p) => (borrador = { lat: p.lat, lng: p.lng })}
+    />
+
+    <div class="ubic-barra">
+      {#if borrador.lat != null && borrador.lng != null}
+        <span class="coords">{fmtCoord(borrador.lat)}, {fmtCoord(borrador.lng)}</span>
+      {:else}
+        <span class="coords sin">Sin ubicación</span>
+      {/if}
+
+      <form method="POST" action="?/setUbicacion" class="ubic-form" use:enhance>
+        <input type="hidden" name="lat" value={borrador.lat ?? ''} />
+        <input type="hidden" name="lng" value={borrador.lng ?? ''} />
+        <button class="btn primary sm" type="submit" disabled={!sinGuardar}>
+          {sinGuardar ? 'Guardar ubicación' : 'Ubicación guardada'}
+        </button>
+      </form>
+
+      {#if farmacia.lat != null}
+        <!-- Quitar la ubicación no borra nada irreversible: se vuelve a marcar
+             en el mapa cuando se quiera, por eso no lleva modal de confirmación. -->
+        <form method="POST" action="?/setUbicacion" use:enhance>
+          <input type="hidden" name="lat" value="" />
+          <input type="hidden" name="lng" value="" />
+          <button class="btn ghost sm" type="submit">Quitar ubicación</button>
+        </form>
+      {/if}
+    </div>
+    {#if form?.ubicacionError}<span class="err" role="alert">{form.ubicacionError}</span>{/if}
+    {#if form?.ubicacionGuardada}<span class="ok" role="status">Ubicación actualizada.</span>{/if}
+    {#if form?.ubicacionQuitada}<span class="ok" role="status">Ubicación quitada.</span>{/if}
+  </div>
+
+  <div class="members">
     <h2>Personal</h2>
     <!-- Los enlaces a /supervisores y /empleados solo para admin: esas rutas
          redirigen al home a quien no lo sea, así que a un owner no-admin le
          rebotarían. -->
     <p class="hint">
       Supervisor y empleados de esta farmacia. Es personal, no cuentas de acceso; lo da de alta el
-      administrador{#if data.isAdmin}
-        desde <a href="/supervisores">Supervisores</a> y <a href="/empleados">Empleados</a>{/if}.
+      administrador{#if data.isAdmin} desde <a href="/supervisores">Supervisores</a> y
+        <a href="/empleados">Empleados</a>{/if}.
     </p>
 
     {#if data.isAdmin}
@@ -279,6 +343,34 @@
     color: #2563eb;
     background: rgba(37, 99, 235, 0.12);
     border-color: rgba(37, 99, 235, 0.3);
+  }
+  .ubic-barra {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 0.7rem;
+  }
+  .ubic-form {
+    /* Los botones a la derecha; las coordenadas se quedan pegadas al margen. */
+    margin-left: auto;
+  }
+  .coords {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: rgba(30, 41, 59, 0.7);
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    padding: 0.3rem 0.6rem;
+  }
+  .coords.sin {
+    font-style: italic;
+    color: rgba(30, 41, 59, 0.45);
+  }
+  .btn.primary:disabled {
+    background: rgba(30, 41, 59, 0.18);
+    box-shadow: none;
+    cursor: default;
   }
   .add-member {
     display: flex;

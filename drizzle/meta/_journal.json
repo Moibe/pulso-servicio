@@ -64,6 +64,13 @@
       "when": 1786676101328,
       "tag": "0008_corregir_fecha_de_usuarios",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1786694913937,
+      "tag": "0009_skinny_sentry",
+      "breakpoints": true
     }
   ]
 }

@@ -92,6 +92,36 @@ export const actions: Actions = {
 		return { supervisorSet: true };
 	},
 
+	// Guardar (o quitar) la ubicación del mapa. Mismo permiso que renombrar: es
+	// un dato de la farmacia, no del personal.
+	setUbicacion: async ({ request, params, locals }) => {
+		const id = farmaciaId(params);
+		requireManageFarmacia(locals.user, id);
+
+		const fd = await request.formData();
+		const rawLat = String(fd.get('lat') ?? '').trim();
+		const rawLng = String(fd.get('lng') ?? '').trim();
+
+		// Vacío = quitar la ubicación. Se limpian las dos columnas juntas: nunca
+		// se guarda media ubicación.
+		if (rawLat === '' && rawLng === '') {
+			db.update(farmacias).set({ lat: null, lng: null }).where(eq(farmacias.id, id)).run();
+			return { ubicacionQuitada: true };
+		}
+
+		const lat = Number(rawLat);
+		const lng = Number(rawLng);
+		if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
+			return fail(400, { ubicacionError: 'Latitud fuera de rango.' });
+		}
+		if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
+			return fail(400, { ubicacionError: 'Longitud fuera de rango.' });
+		}
+
+		db.update(farmacias).set({ lat, lng }).where(eq(farmacias.id, id)).run();
+		return { ubicacionGuardada: true };
+	},
+
 	rename: async ({ request, params, locals }) => {
 		const id = farmaciaId(params);
 		requireManageFarmacia(locals.user, id);
