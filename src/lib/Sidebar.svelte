@@ -15,8 +15,17 @@
   } = $props();
 
   // level = profundidad jerárquica; se usa para indentar y comunicar anidamiento.
-  // Hoy solo hay un nivel: la navegación de contenido es la lista de farmacias.
-  const items = [{ href: '/', label: 'Farmacias', level: 0 }];
+  // Hoy solo hay un nivel. Supervisores/Empleados son admin-only, así que se
+  // agregan a la MISMA lista (mismo estilo que Farmacias) solo si isAdmin.
+  const items = $derived(
+    isAdmin
+      ? [
+          { href: '/', label: 'Farmacias', level: 0 },
+          { href: '/supervisores', label: 'Supervisores', level: 0 },
+          { href: '/empleados', label: 'Empleados', level: 0 }
+        ]
+      : [{ href: '/', label: 'Farmacias', level: 0 }]
+  );
 
   // El detalle de una farmacia (/farmacias/[id]) sigue siendo "Farmacias".
   function isActive(href: string) {
@@ -88,29 +97,6 @@
         </a>
       {/each}
     </nav>
-
-    {#if isAdmin}
-      <!-- Personal de las farmacias. Las CUENTAS de acceso (/users) no están aquí:
-           viven en /me, porque solo el admin las crea y no son navegación diaria. -->
-      <div class="admin-block">
-        <a
-          href="/supervisores"
-          class="admin-link"
-          aria-current={page.url.pathname.startsWith('/supervisores') ? 'page' : undefined}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /><path d="m16 3 2 2 3-3" /></svg>
-          Supervisores
-        </a>
-        <a
-          href="/empleados"
-          class="admin-link"
-          aria-current={page.url.pathname.startsWith('/empleados') ? 'page' : undefined}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-          Empleados
-        </a>
-      </div>
-    {/if}
 
     <div class="sidebar-footer">
       <button type="button" class="collapse-btn" onclick={handleCollapseClick} aria-label="Replegar barra">
@@ -214,36 +200,6 @@
   }
   .nav-item[aria-current='page'] .nav-ico {
     background: #2563eb;
-  }
-  /* Bloque de admin: la línea divisoria va arriba del grupo, no de cada enlace. */
-  .admin-block {
-    margin-top: 1rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-  .admin-link {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.6rem 0.95rem;
-    color: #15803d;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    transition: background 0.18s ease, border-color 0.18s ease;
-  }
-  .admin-link:hover {
-    background: rgba(22, 163, 74, 0.08);
-  }
-  .admin-link[aria-current='page'] {
-    color: #15803d;
-    background: rgba(22, 163, 74, 0.12);
-    border-color: rgba(22, 163, 74, 0.3);
   }
   .sidebar-footer {
     display: flex;
