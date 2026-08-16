@@ -401,6 +401,14 @@
     font-size: 0.8rem;
     white-space: nowrap;
   }
+  /* En móvil vertical el renglón no da para nombre + fecha + los 3 botones, y
+     la fecha de creación no es dato que se ocupe aquí: se oculta solo en ese
+     caso. En horizontal (y en cualquier pantalla ancha) sí cabe y se conserva. */
+  @media (max-width: 768px) and (orientation: portrait) {
+    .item-fecha {
+      display: none;
+    }
+  }
 
   /* Vista mosaico */
   .mosaic {
