@@ -167,8 +167,12 @@
     }
   }
 
-  /* Trunca nombres largos en vez de desbordar el renglón. */
+  /* Trunca nombres largos en vez de desbordar el renglón.
+     display:block es indispensable: el nombre va en un <span> y en elementos
+     inline no aplican overflow/text-overflow/max-width, así que el texto se
+     salía de su caja y se encimaba con lo que sigue en el renglón. */
   :global(.item-nombre) {
+    display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
