@@ -56,7 +56,7 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	// Igual que el borrado de /farmacias/[id]/settings (mismo permiso, mismo
+	// Igual que el borrado de /farmacias/[id] (mismo permiso, mismo
 	// efecto), pero desde la tarjeta: no hace falta redirect porque ya estás
 	// en el home. Sus empleados no se borran: quedan sin asignar (ON DELETE SET NULL).
 	borrarFarmacia: async ({ request, locals }) => {

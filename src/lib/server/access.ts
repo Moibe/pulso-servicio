@@ -19,8 +19,8 @@ export function isMember(usuarioId: number, farmaciaId: number): boolean {
 }
 
 // True si es "owner" de ESA farmacia (la creó, o un admin/otro owner lo hizo owner
-// desde /settings). Un owner administra su farmacia por completo aunque no sea
-// admin global.
+// desde la ficha de la farmacia). Un owner administra su farmacia por completo
+// aunque no sea admin global.
 export function isOwnerFarmacia(usuarioId: number, farmaciaId: number): boolean {
 	const row = db
 		.select({ id: farmaciaMembers.id })
