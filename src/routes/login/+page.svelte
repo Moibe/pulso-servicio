@@ -98,8 +98,8 @@
     width: 100%;
     max-width: 380px;
     background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(8px) saturate(110%);
     -webkit-backdrop-filter: blur(8px) saturate(110%);
+    backdrop-filter: blur(8px) saturate(110%);
     border: 1px solid rgba(255, 255, 255, 0.7);
     border-radius: 16px;
     padding: 2rem;
