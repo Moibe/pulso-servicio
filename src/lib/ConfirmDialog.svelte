@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { portal } from '$lib/portal';
   // Modal de confirmación reutilizable para acciones destructivas (borrar).
   // Sustituye a window.confirm(): mismo look and feel que el resto del sitio en
   // vez de la alerta genérica del navegador. El padre controla `open` por
@@ -31,7 +32,7 @@
 
 {#if open}
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-  <div class="overlay" onclick={onCancel}>
+  <div use:portal class="overlay" onclick={onCancel}>
     <div
       class="modal"
       role="alertdialog"

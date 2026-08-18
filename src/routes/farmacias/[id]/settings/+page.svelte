@@ -97,7 +97,7 @@
          rebotarían. -->
     <p class="hint">
       Supervisor y empleados de esta farmacia. Es personal, no cuentas de acceso; lo da de alta el
-      administrador{#if data.isAdmin} desde <a href="/supervisores">Supervisores</a> y
+      administrador{#if data.isAdmin}{' '}desde <a href="/supervisores">Supervisores</a> y
         <a href="/empleados">Empleados</a>{/if}.
     </p>
 
