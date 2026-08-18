@@ -567,6 +567,23 @@
     flex-wrap: wrap;
     justify-content: center;
   }
+  /* El input se lleva una fila entera: si comparte línea con Guardar/Cancelar
+     dentro de la tile, el nombre queda recortado a dos o tres letras. */
+  .tile .edit-input {
+    /* border-box es imprescindible: con content-box, un flex-basis del 100% le
+       suma encima el padding y el borde, y el campo se sale de la tile. */
+    box-sizing: border-box;
+    flex: 1 1 100%;
+  }
+  /* Guardar y Cancelar se reparten la fila a medias en vez de depender de que
+     su ancho natural quepa: así entran en una sola línea a cualquier ancho de
+     tile (con el padding de serie se pasaban por unos pocos px y se apilaban). */
+  .tile .edit-form .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+  }
   .tile-asignar {
     width: 100%;
     /* Pegado al fondo: las tiles de una fila miden lo mismo (grid), así que
