@@ -410,7 +410,12 @@
     border-radius: 10px;
     padding: 0.55rem 0.75rem;
     flex: 1;
-    min-width: 140px;
+    /* 200px y no 140px: con 140 los dos campos "caben" por 2px en los 362px de
+       un iPhone vertical y nunca envuelven, así que cada uno queda en 177px y el
+       placeholder sale mutilado ("Contraseña (mín. 4" — sin el paréntesis final,
+       que necesita 160px de texto contra 151px de área útil). Con 200px ya no
+       caben en un renglón y se apilan, entrando completos. */
+    min-width: 200px;
     box-sizing: border-box;
   }
   input:focus {

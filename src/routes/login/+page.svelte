@@ -83,6 +83,11 @@
   .login-wrap {
     min-height: 100vh;
     min-height: 100dvh;
+    /* Sin border-box el padding se SUMA al 100dvh y la página queda 48px más
+       alta que la pantalla (974 contra 926 medidos), volviéndola scrolleable sin
+       motivo. En iOS eso además hace que la barra de Safari se repliegue al
+       arrastrar, 100dvh crezca y el layout se persiga a sí mismo. */
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { portal } from '$lib/portal';
   import { onMount } from 'svelte';
   import { enhance } from '$app/forms';
   import ConfirmDialog from '$lib/ConfirmDialog.svelte';
@@ -233,7 +234,7 @@
 
 {#if showModal}
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-  <div class="overlay" onclick={cerrar}>
+  <div use:portal class="overlay" onclick={cerrar}>
     <div
       class="modal"
       role="dialog"
@@ -265,7 +266,7 @@
 {#if showAsignarId !== null}
   {@const sup = data.supervisores.find((s) => s.id === showAsignarId)}
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-  <div class="overlay" onclick={cerrarAsignar}>
+  <div use:portal class="overlay" onclick={cerrarAsignar}>
     <div
       class="modal"
       role="dialog"
@@ -681,6 +682,9 @@
     position: fixed;
     inset: 0;
     background: rgba(15, 23, 42, 0.45);
+    /* El prefijo va primero: la versión sin prefijar no existe hasta Safari 18,
+       así que en iOS <= 17 el desenfoque del modal se descartaba callado. */
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
     display: flex;
     align-items: center;
