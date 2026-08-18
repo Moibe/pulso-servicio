@@ -333,5 +333,15 @@
       );
       margin: auto;
     }
+    /* Sin esto el menú sale VACÍO en Safari <= 17 (verificado en WebKit 17.4):
+       al calcular la altura fit-content del panel, esos Safari tratan a un hijo
+       flex con flex-basis 0% como si no aportara altura, así que nav queda en 0
+       y los items se recortan. Con flex-basis auto el aporte es su contenido, y
+       eso se comporta igual en todos los motores. Sigue pudiendo encogerse
+       (flex-shrink 1 + min-height 0), así que con muchos items el panel se topa
+       en max-height y nav hace scroll. */
+    nav {
+      flex-basis: auto;
+    }
   }
 </style>
