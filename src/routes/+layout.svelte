@@ -124,8 +124,8 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    backdrop-filter: blur(8px) saturate(110%);
     -webkit-backdrop-filter: blur(8px) saturate(110%);
+    backdrop-filter: blur(8px) saturate(110%);
     pointer-events: none;
   }
 
