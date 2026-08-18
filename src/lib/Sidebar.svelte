@@ -312,4 +312,26 @@
       min-height: 44px;
     }
   }
+
+  /* En vertical el drawer pegado a la izquierda se ve desbalanceado (3 items y
+     una columna larguísima vacía), así que ahí el menú sale centrado en
+     pantalla y con la altura justa de su contenido.
+
+     Se centra con `margin: auto` y NO con transform: el tilt 3D viaja en el
+     atributo style del <aside>, y un transform de hoja de estilos jamás le
+     ganaría a un estilo inline. Con position: fixed, top/bottom/left/right
+     definidos y una altura no-auto, `margin: auto` centra en ambos ejes. */
+  @media (max-width: 768px) and (orientation: portrait) {
+    .sidebar {
+      top: calc(1rem + env(safe-area-inset-top, 0px));
+      bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+      left: 0;
+      right: 0;
+      height: fit-content;
+      max-height: calc(
+        100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+      );
+      margin: auto;
+    }
+  }
 </style>
