@@ -118,12 +118,6 @@
   </button>
 {/snippet}
 
-{#snippet settingsLink(p: { id: number })}
-  <a class="icon-btn settings" href={`/farmacias/${p.id}/settings`} aria-label="Ajustes y miembros" title="Ajustes y miembros">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
-  </a>
-{/snippet}
-
 {#snippet trash(p: { id: number; nombre: string })}
   <button
     type="button"
@@ -191,7 +185,6 @@
               {#if p.creadoEn}<span class="tile-fecha">{fmtFecha(p.creadoEn)}</span>{/if}
               {#if p.canManage}
                 {@render pencil(p)}
-                {@render settingsLink(p)}
                 {@render trash(p)}
               {/if}
             {/if}
@@ -211,7 +204,6 @@
               {#if p.creadoEn}<span class="item-fecha">{fmtFecha(p.creadoEn)}</span>{/if}
               {#if p.canManage}
                 {@render pencil(p)}
-                {@render settingsLink(p)}
                 {@render trash(p)}
               {/if}
             {/if}
@@ -464,15 +456,10 @@
     color: rgba(30, 41, 59, 0.5);
     font-size: 0.75rem;
   }
-  /* Orden visual (izq→der): lápiz, ajustes, bote — el engrane en medio.
-     Separados 0.6rem entre sí (antes quedaban pegados: el intervalo igualaba
-     el ancho del icon-btn, así que no dejaba hueco). */
+  /* Orden visual (izq→der): lápiz, bote. Separados 0.6rem entre sí (el
+     intervalo de 2.6rem = 2rem de ancho del icon-btn + 0.6rem de hueco; si
+     igualara el ancho quedarían pegados). */
   .tile .icon-btn.edit {
-    position: absolute;
-    top: 0.4rem;
-    right: 5.6rem;
-  }
-  .tile .icon-btn.settings {
     position: absolute;
     top: 0.4rem;
     right: 3rem;
@@ -557,16 +544,6 @@
   .icon-btn.save:hover {
     background: rgba(22, 163, 74, 0.12);
     color: #15803d;
-  }
-  .icon-btn.settings {
-    color: rgba(30, 41, 59, 0.55);
-    border-color: rgba(30, 41, 59, 0.25);
-    text-decoration: none;
-  }
-  .icon-btn.settings:hover {
-    background: rgba(0, 0, 0, 0.06);
-    color: #1e293b;
-    border-color: rgba(30, 41, 59, 0.4);
   }
 
   /* Modal */
