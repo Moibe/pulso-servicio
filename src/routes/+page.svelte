@@ -483,6 +483,17 @@
   }
   .tile .edit-form {
     width: 100%;
+    /* En una tile (~150px) no caben el input y los dos botones en la misma
+       línea: el nombre quedaba recortado a dos o tres letras. El input se lleva
+       una fila entera y los botones bajan debajo, centrados. */
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tile .edit-input {
+    /* border-box es imprescindible: con content-box, un flex-basis del 100% le
+       suma encima el padding y el borde, y el campo se sale de la tile. */
+    box-sizing: border-box;
+    flex: 1 1 100%;
   }
 
   /* Edición inline */
