@@ -304,6 +304,18 @@
     .sidebar {
       z-index: 20;
       width: min(82vw, 300px);
+      /* Blanco sólido en móvil, no vidrio. Como overlay el panel se veía gris:
+         su blanco al 45% dejaba pasar el velo oscuro del scrim (navy al 35%) y
+         las dos capas se mezclaban. Aquí el menú funciona como un modal, así que
+         usa el mismo #fff que los modales del resto de la app.
+         Con el fondo opaco el backdrop-filter ya no se ve, y en iOS es una
+         operación de composición caras, así que se apaga en vez de dejarlo
+         calculando un desenfoque invisible. El borde blanco translúcido tampoco
+         aporta contra un panel blanco: el canto lo define la sombra. */
+      background: #fff;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      border-color: transparent;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.6),
         0 8px 32px rgba(0, 0, 0, 0.28);
