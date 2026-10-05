@@ -3,10 +3,10 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	// Puerto dedicado en dev para no chocar con el 5173 default de tus otras apps
-	// Vite (evita que scopes de PWA instaladas se cuelen entre proyectos).
-	server: { port: 5185, strictPort: true },
-	preview: { port: 5185, strictPort: true },
+	// Mismo puerto que en el droplet (pm2 en 127.0.0.1:3700 detrás de nginx, officepool.win), para
+	// que local y prod coincidan. strictPort: falla en vez de brincar a otro puerto en silencio.
+	server: { port: 3700, strictPort: true },
+	preview: { port: 3700, strictPort: true },
 	plugins: [
 		sveltekit({
 			compilerOptions: {
